@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SQL Atlas — Teacher Dashboard</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet"/>
+</head>
+<body class="page-admin">
+
+  <!-- ================================================================
+       HEADER
+       ================================================================ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🌍</span>
+        <span class="logo-text">SQL Atlas</span>
+      </a>
+      <span class="admin-badge">Teacher Dashboard</span>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <!-- ================================================================
+         LOGIN FORM  —  visible by default, hidden after successful login
+         ================================================================ -->
+    <section id="login-section" class="admin-card login-card">
+      <div class="login-icon">🔐</div>
+      <h1 class="admin-title">Teacher Login</h1>
+      <p class="admin-sub">This area is for teachers only. Enter your password to continue.</p>
+
+      <div class="form-group">
+        <label for="password-input" class="form-label">Password</label>
+        <input
+          type="password"
+          id="password-input"
+          class="form-input"
+          placeholder="Enter teacher password"
+          autocomplete="current-password"
+        />
+        <!-- Error shown here if login fails -->
+        <span id="login-error" class="field-error" style="display:none;">
+          ❌ Incorrect password. Please try again.
+        </span>
+      </div>
+
+      <button id="btn-login" class="btn-primary btn-full">Login →</button>
+
+      <p class="login-hint">
+        <small>Hint: The password is set by the project admin in the <code>.env</code> file.</small>
+      </p>
+    </section>
+
+    <!-- ================================================================
+         DASHBOARD  —  hidden by default, shown after login
+         ================================================================ -->
+    <section id="dashboard-section" class="dashboard-section" style="display:none;">
+
+      <div class="dashboard-header">
+        <h1 class="admin-title">Welcome, Teacher! 👋</h1>
+        <button id="btn-logout" class="btn-ghost btn-sm">Logout</button>
+      </div>
+
+      <!-- ── Tabs ── -->
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="add-challenge">➕ Add Challenge</button>
+        <button class="tab-btn" data-tab="view-challenges">📋 View All Challenges</button>
+      </div>
+
+      <!-- ── Tab: Add Challenge ── -->
+      <div id="tab-add-challenge" class="tab-panel admin-card">
+        <h2 class="card-title">Add a New Challenge</h2>
+
+        <!-- Question Text -->
+        <div class="form-group">
+          <label for="input-question" class="form-label">
+            Question Text <span class="required">*</span>
+          </label>
+          <textarea
+            id="input-question"
+            class="form-input form-textarea"
+            placeholder="e.g. Show the population of France."
+            rows="3"
+          ></textarea>
+          <span class="field-error" data-field="question" style="display:none;">This field is required.</span>
+        </div>
+
+        <!-- Expected SQL Query -->
+        <div class="form-group">
+          <label for="input-expected-sql" class="form-label">
+            Expected SQL Query <span class="required">*</span>
+            <small class="label-hint">(The correct answer — students never see this)</small>
+          </label>
+          <textarea
+            id="input-expected-sql"
+            class="form-input form-textarea sql-editor"
+            placeholder="SELECT population FROM countries WHERE name = 'France'"
+            rows="4"
+          ></textarea>
+          <span class="field-error" data-field="expected_sql" style="display:none;">This field is required.</span>
+        </div>
+
+        <!-- Difficulty -->
+        <div class="form-group">
+          <label for="input-difficulty" class="form-label">
+            Difficulty <span class="required">*</span>
+          </label>
+          <select id="input-difficulty" class="form-input form-select">
+            <option value="">— Select difficulty —</option>
+            <option value="easy">🟢 Easy — Basic WHERE / SELECT</option>
+            <option value="medium">🟡 Medium — IN, BETWEEN, ORDER BY, GROUP BY</option>
+            <option value="hard">🔴 Hard — JOINs, Subqueries, HAVING</option>
+          </select>
+          <span class="field-error" data-field="difficulty" style="display:none;">Please select a difficulty.</span>
+        </div>
+
+        <!-- Hint (optional) -->
+        <div class="form-group">
+          <label for="input-hint" class="form-label">
+            Hint <span class="optional">(optional)</span>
+            <small class="label-hint">(Shown to students after 2 wrong attempts)</small>
+          </label>
+          <input
+            type="text"
+            id="input-hint"
+            class="form-input"
+            placeholder="e.g. Use WHERE name = to filter by country name."
+          />
+        </div>
+
+        <!-- Submit -->
+        <div class="form-actions">
+          <button id="btn-save-challenge" class="btn-primary">
+            💾 Save Challenge
+          </button>
+          <button id="btn-clear-form" class="btn-ghost">Clear Form</button>
+        </div>
+
+        <!-- Success / Error feedback -->
+        <div id="save-feedback" class="save-feedback" style="display:none;"></div>
+      </div>
+
+      <!-- ── Tab: View All Challenges ── -->
+      <div id="tab-view-challenges" class="tab-panel admin-card" style="display:none;">
+        <h2 class="card-title">All Challenges</h2>
+        <div class="filter-row">
+          <label>Filter:
+            <select id="filter-difficulty" class="form-input form-select form-select-sm">
+              <option value="">All</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </label>
+          <button id="btn-refresh-challenges" class="btn-ghost btn-sm">🔄 Refresh</button>
+        </div>
+        <!--
+          Challenge list is rendered by JS.
+          TODO: Add delete/edit functionality in a future sprint.
+        -->
+        <div id="challenges-list" class="challenges-list">
+          <p class="loading-text">Loading challenges...</p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
+
+</body>
+</html>

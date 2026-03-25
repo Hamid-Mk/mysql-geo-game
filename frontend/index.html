@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SQL Atlas — Learn SQL by Exploring the World</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <!--
+    Google Fonts:
+    - Nunito     → friendly UI font (headings, body)
+    - Source Code Pro → monospace font (SQL editor, code examples)
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet"/>
+</head>
+<body class="page-home">
+
+  <!-- ================================================================
+       HEADER  —  logo + nav
+       ================================================================ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <!--
+        TODO: Replace the emoji globe with the actual SVG logo from /assets/logo.svg
+        <img src="assets/logo.svg" alt="SQL Atlas logo" class="logo-img"/>
+      -->
+      <div class="logo">
+        <span class="logo-icon">🌍</span>
+        <span class="logo-text">SQL Atlas</span>
+      </div>
+      <nav class="site-nav">
+        <!-- Links intentionally minimal — students only need Start Game -->
+        <a href="admin_teacher.html" class="nav-link">Teacher Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ================================================================
+       HERO SECTION  —  tagline + CTA button
+       ================================================================ -->
+  <main class="hero-section">
+    <div class="hero-content">
+
+      <!-- Badge -->
+      <span class="hero-badge">🎮 Learn SQL the fun way</span>
+
+      <!-- Main Headline -->
+      <h1 class="hero-headline">
+        Learn SQL by<br/>
+        <span class="headline-accent">Exploring the World</span>
+      </h1>
+
+      <p class="hero-sub">
+        Answer real geography questions using SQL.
+        Start with the basics and work your way up to advanced queries —
+        no setup required.
+      </p>
+
+      <!-- CTA Button — navigates to the first challenge -->
+      <!--
+        TODO: Optionally fetch /api/challenges from the backend to find
+              the first challenge ID dynamically instead of hardcoding ?id=1
+      -->
+      <a href="quiz.html?id=1" class="btn-primary btn-xl">
+        Start Game 🚀
+      </a>
+
+      <!-- Quick stats row -->
+      <div class="stats-row">
+        <div class="stat-item"><strong>20</strong><span>Challenges</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat-item"><strong>3</strong><span>Difficulty Levels</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat-item"><strong>5</strong><span>Database Tables</span></div>
+      </div>
+    </div>
+
+    <!-- Decorative right-side illustration placeholder -->
+    <div class="hero-visual">
+      <!--
+        TODO: Replace with a real globe/world-map illustration
+        Suggested tool: use an SVG world map from https://simplemaps.com/resources/svg-world
+      -->
+      <div class="globe-placeholder">🗺️</div>
+    </div>
+  </main>
+
+  <!-- ================================================================
+       HOW TO PLAY SECTION
+       ================================================================ -->
+  <section class="how-to-play">
+    <h2 class="section-title">How to Play</h2>
+    <div class="steps-grid">
+
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3>Read the Question</h3>
+        <p>Each challenge asks you a geography question like <em>"List all countries in Asia."</em></p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3>Write Your SQL</h3>
+        <p>Type a <code>SELECT</code> statement in the code editor. Use the database diagram as your guide.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3>Run & Check</h3>
+        <p>Click <strong>Run Query</strong>. See your results instantly and find out if you got it right!</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================================================================
+       DIFFICULTY PREVIEW SECTION
+       ================================================================ -->
+  <section class="difficulty-preview">
+    <h2 class="section-title">What You'll Learn</h2>
+    <div class="difficulty-grid">
+
+      <div class="diff-card diff-easy">
+        <span class="diff-badge easy">Easy</span>
+        <h3>Basic SELECT</h3>
+        <p>WHERE, column filtering, COUNT</p>
+        <code>SELECT population FROM countries<br/>WHERE name = 'France'</code>
+      </div>
+
+      <div class="diff-card diff-medium">
+        <span class="diff-badge medium">Medium</span>
+        <h3>Filtering & Sorting</h3>
+        <p>IN, BETWEEN, ORDER BY, GROUP BY</p>
+        <code>SELECT name, population FROM countries<br/>ORDER BY population DESC LIMIT 5</code>
+      </div>
+
+      <div class="diff-card diff-hard">
+        <span class="diff-badge hard">Hard</span>
+        <h3>Joins & Aggregates</h3>
+        <p>JOIN, SUM, HAVING, subqueries</p>
+        <code>SELECT countries.name, languages.name<br/>FROM countries JOIN country_languages...</code>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================================================================
+       FOOTER
+       ================================================================ -->
+  <footer class="site-footer">
+    <p>SQL Atlas — Built by students, for students. 🌍</p>
+    <!--
+      TODO: Add the project GitHub link here for TOP-Day visitors
+    -->
+  </footer>
+
+  <script src="js/app.js"></script>
+
+</body>
+</html>

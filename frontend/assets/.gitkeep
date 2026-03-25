@@ -1,0 +1,9 @@
+# Place the following files in this folder:
+#
+#   erd_diagram.png   — Exported by the database architect (M2)
+#                       Used by quiz.html as the left-panel reference image.
+#
+#   logo.svg          — Project logo (globe + code brackets)
+#                       Created by the UI/UX designer (M3)
+#
+#   logo.png          — PNG fallback of the logo (for the poster)

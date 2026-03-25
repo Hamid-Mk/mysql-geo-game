@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SQL Atlas — Challenge</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet"/>
+</head>
+<body class="page-quiz">
+
+  <!-- ================================================================
+       HEADER  —  same across all pages
+       ================================================================ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🌍</span>
+        <span class="logo-text">SQL Atlas</span>
+      </a>
+      <!-- Progress bar — JS fills in the challenge number and width -->
+      <div class="progress-bar-wrapper">
+        <span id="progress-label" class="progress-label">Challenge 1 of 20</span>
+        <div class="progress-track">
+          <div id="progress-fill" class="progress-fill" style="width: 5%"></div>
+        </div>
+      </div>
+      <div class="header-right">
+        <span id="difficulty-badge" class="diff-badge easy">Easy</span>
+        <a href="admin_teacher.html" class="nav-link">Teacher</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================================================================
+       QUIZ LAYOUT  —  3 panels
+       Layout: [Left: DB Reference] [Center: Question + Editor] [Results below center]
+       ================================================================ -->
+  <div class="quiz-layout">
+
+    <!-- ── LEFT PANEL: Database Reference ────────────────────────── -->
+    <aside class="panel panel-reference">
+      <h2 class="panel-title">📋 Database Reference</h2>
+
+      <!--
+        ERD IMAGE:
+        - The ERD is exported by M2 (database architect) as erd_diagram.png
+        - TODO: Replace the placeholder below once erd_diagram.png is in /assets
+      -->
+      <div class="erd-container">
+        <img
+          id="erd-image"
+          src="assets/erd_diagram.png"
+          alt="Database Entity Relationship Diagram"
+          class="erd-img"
+          onerror="this.style.display='none'; document.getElementById('erd-placeholder').style.display='flex';"
+        />
+        <!-- Shown if erd_diagram.png is missing -->
+        <div id="erd-placeholder" class="erd-placeholder">
+          <span>📊</span>
+          <p>ERD diagram<br/>coming soon</p>
+          <small>Add erd_diagram.png to /assets</small>
+        </div>
+      </div>
+
+      <!-- Quick table reference — hardcoded for fast access without API -->
+      <div class="table-reference">
+        <h3 class="ref-subtitle">Tables & Key Columns</h3>
+
+        <details class="ref-table" open>
+          <summary><strong>countries</strong></summary>
+          <ul>
+            <li><code>id</code> — primary key</li>
+            <li><code>name</code> — country name</li>
+            <li><code>continent</code></li>
+            <li><code>area</code> — km²</li>
+            <li><code>population</code></li>
+            <li><code>gdp</code> — USD</li>
+            <li><code>capital</code></li>
+            <li><code>independence_year</code></li>
+          </ul>
+        </details>
+
+        <details class="ref-table">
+          <summary><strong>cities</strong></summary>
+          <ul>
+            <li><code>id</code></li>
+            <li><code>name</code></li>
+            <li><code>country_id</code> → countries.id</li>
+            <li><code>population</code></li>
+            <li><code>is_capital</code> — TRUE/FALSE</li>
+          </ul>
+        </details>
+
+        <details class="ref-table">
+          <summary><strong>rivers</strong></summary>
+          <ul>
+            <li><code>id</code></li>
+            <li><code>name</code></li>
+            <li><code>length_km</code></li>
+            <li><code>continent</code></li>
+            <li><code>outflow</code></li>
+          </ul>
+        </details>
+
+        <details class="ref-table">
+          <summary><strong>languages</strong></summary>
+          <ul>
+            <li><code>id</code></li>
+            <li><code>name</code></li>
+          </ul>
+        </details>
+
+        <details class="ref-table">
+          <summary><strong>country_languages</strong></summary>
+          <ul>
+            <li><code>country_id</code> → countries.id</li>
+            <li><code>language_id</code> → languages.id</li>
+            <li><code>is_official</code> — TRUE/FALSE</li>
+          </ul>
+        </details>
+      </div>
+    </aside>
+
+    <!-- ── CENTER PANEL: Question + Editor + Controls ─────────────── -->
+    <main class="panel panel-editor">
+
+      <!-- Question card — populated by JS from /api/challenges/:id -->
+      <div class="question-card">
+        <div class="question-header">
+          <span id="challenge-number" class="challenge-num">Challenge #1</span>
+        </div>
+        <p id="question-text" class="question-text">
+          <!-- JS fills this in -->
+          Loading question...
+        </p>
+        <!-- Hint section — hidden until 2 failed attempts -->
+        <div id="hint-box" class="hint-box" style="display:none;">
+          <span class="hint-icon">💡</span>
+          <span id="hint-text"></span>
+        </div>
+      </div>
+
+      <!-- SQL Editor -->
+      <div class="editor-wrapper">
+        <div class="editor-toolbar">
+          <span class="editor-label">SQL Editor</span>
+          <button id="btn-clear" class="btn-ghost btn-sm" title="Clear editor">Clear</button>
+        </div>
+        <!--
+          TEXTAREA used as editor.
+          TODO (optional): Replace with CodeMirror for syntax highlighting.
+          CodeMirror CDN: https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js
+        -->
+        <textarea
+          id="sql-editor"
+          class="sql-editor"
+          spellcheck="false"
+          placeholder="-- Write your SELECT query here&#10;-- Example: SELECT name FROM countries WHERE continent = 'Asia'"
+          rows="8"
+        ></textarea>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="editor-actions">
+        <button id="btn-run" class="btn-primary btn-run">
+          ▶ Run Query
+        </button>
+        <button id="btn-hint" class="btn-ghost">
+          💡 Hint
+        </button>
+        <div class="actions-right">
+          <button id="btn-prev" class="btn-ghost btn-nav" disabled>← Prev</button>
+          <button id="btn-next" class="btn-ghost btn-nav" disabled>Next →</button>
+        </div>
+      </div>
+
+      <!-- Error message — shown inline when SQL has an error -->
+      <div id="error-box" class="error-box" style="display:none;">
+        <span class="error-icon">⚠️</span>
+        <span id="error-text"></span>
+      </div>
+
+      <!-- Success / Failure banner — shown after running a query -->
+      <!--
+        States:
+          .feedback-correct  → green "Correct!" banner
+          .feedback-wrong    → red  "Not quite" banner
+      -->
+      <div id="feedback-banner" class="feedback-banner" style="display:none;">
+        <span id="feedback-icon"></span>
+        <span id="feedback-text"></span>
+      </div>
+
+      <!-- Results table — built dynamically from API response -->
+      <div id="results-container" class="results-container" style="display:none;">
+        <div class="results-header">
+          <span class="results-title">Query Results</span>
+          <span id="results-count" class="results-count"></span>
+        </div>
+        <div class="results-scroll">
+          <table id="results-table" class="results-table">
+            <thead id="results-thead"></thead>
+            <tbody id="results-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ================================================================
+       SUCCESS MODAL  —  shown when is_correct = true
+       ================================================================ -->
+  <div id="success-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-icon">🎉</div>
+      <h2 class="modal-title">Correct!</h2>
+      <p class="modal-sub" id="modal-sub-text">Great query! You got it right.</p>
+      <div class="modal-actions">
+        <button id="btn-modal-next" class="btn-primary">Next Challenge →</button>
+        <button id="btn-modal-close" class="btn-ghost">Stay Here</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/quiz.js"></script>
+
+</body>
+</html>

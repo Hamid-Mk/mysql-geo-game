@@ -1,0 +1,14 @@
+# =============================================================================
+# requirements.txt  —  SQL Atlas Backend Dependencies
+# =============================================================================
+# Install all dependencies with:
+#   pip install -r requirements.txt
+# =============================================================================
+
+fastapi==0.111.0          # Web framework — handles routing, request parsing, validation
+uvicorn[standard]==0.29.0 # ASGI server — runs the FastAPI app
+sqlalchemy==2.0.30        # Database ORM / query builder + connection pool
+pymysql==1.1.1            # MySQL driver used by SQLAlchemy (mysql+pymysql://)
+python-dotenv==1.0.1      # Loads .env file into os.getenv()
+passlib[bcrypt]==1.7.4    # Password hashing for admin login
+pydantic==2.7.1           # Request/response data validation (built into FastAPI)

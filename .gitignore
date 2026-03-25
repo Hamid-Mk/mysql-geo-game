@@ -1,0 +1,52 @@
+# =============================================================================
+# .gitignore  —  SQL Atlas
+# =============================================================================
+
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+env/
+.venv/
+*.virtualenv
+
+# ─── Environment variables  ← CRITICAL: never commit .env ───────────────────
+.env
+*.env
+.env.local
+.env.production
+
+# ─── Database ────────────────────────────────────────────────────────────────
+*.sql.bak
+/database/data/*.csv    # raw data CSVs — too large for git, use a release
+
+# ─── Node (if used for tooling) ──────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log
+.npm
+
+# ─── OS files ────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ─── IDE / Editor ────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
