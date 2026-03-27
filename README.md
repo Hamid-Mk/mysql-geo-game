@@ -44,17 +44,20 @@ sql-atlas/
 ## 🚀 Local Setup
 
 ### Prerequisites
+
 - Python 3.10+
 - MySQL Server 8.0+ running locally
 - A modern browser
 
 ### Step 1 — Clone the repo
+
 ```bash
-git clone https://github.com/YOUR_USERNAME/sql-atlas.git
-cd sql-atlas
+git clone https://github.com/Hamid-Mk/mysql-geo-game.git
+cd mysql-geo-game
 ```
 
 ### Step 2 — Set up the database
+
 ```bash
 # Log in as MySQL root and create the database
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS sql_atlas;"
@@ -74,33 +77,42 @@ mysql -u root -p -e "
 ```
 
 ### Step 3 — Configure backend environment
+
 ```bash
 cd backend
 cp .env.example .env
 ```
+
 Edit `.env` and fill in:
+
 - `DB_PASSWORD` — the password you chose for `student_reader`
 - `ADMIN_PASSWORD_HASH` — generate with:
+
 ```bash
 python -c "from passlib.context import CryptContext; c=CryptContext(schemes=['bcrypt']); print(c.hash('your_teacher_password'))"
 ```
 
 ### Step 4 — Install Python dependencies
+
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
 ### Step 5 — Start the backend
+
 ```bash
 cd backend
 uvicorn app:app --reload --port 8000
 ```
+
 API is live at: `http://localhost:8000`  
 Docs at: `http://localhost:8000/docs`
 
 ### Step 6 — Open the frontend
+
 Open `frontend/index.html` directly in your browser, **or** serve it with:
+
 ```bash
 cd frontend
 python -m http.server 3000
@@ -111,40 +123,40 @@ python -m http.server 3000
 
 ## 🔌 API Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/ping` | Health check |
-| GET | `/api/challenges` | List all challenges |
-| GET | `/api/challenges/{id}` | Single challenge by ID |
-| POST | `/api/execute-query` | Run student SQL + verify answer |
-| POST | `/api/admin/login` | Teacher login → returns token |
-| POST | `/api/admin/add-challenge` | Add new challenge (requires token) |
+| Method | Path                       | Description                        |
+| ------ | -------------------------- | ---------------------------------- |
+| GET    | `/api/ping`                | Health check                       |
+| GET    | `/api/challenges`          | List all challenges                |
+| GET    | `/api/challenges/{id}`     | Single challenge by ID             |
+| POST   | `/api/execute-query`       | Run student SQL + verify answer    |
+| POST   | `/api/admin/login`         | Teacher login → returns token      |
+| POST   | `/api/admin/add-challenge` | Add new challenge (requires token) |
 
 ---
 
 ## 🗃️ Database Schema
 
-| Table | Description |
-|-------|-------------|
-| `countries` | Core geography data — the main query table |
-| `cities` | Cities linked to countries via `country_id` |
-| `rivers` | Rivers with length and continent |
-| `languages` | Language names |
+| Table               | Description                                    |
+| ------------------- | ---------------------------------------------- |
+| `countries`         | Core geography data — the main query table     |
+| `cities`            | Cities linked to countries via `country_id`    |
+| `rivers`            | Rivers with length and continent               |
+| `languages`         | Language names                                 |
 | `country_languages` | Many-to-many: which languages a country speaks |
-| `challenges` | Game questions + expected SQL answers |
+| `challenges`        | Game questions + expected SQL answers          |
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | HTML5, CSS3, Vanilla JavaScript |
-| Backend | Python 3, FastAPI, Uvicorn |
-| Database ORM | SQLAlchemy + PyMySQL |
-| Database | MySQL 8.0 |
-| Hosting (backend) | Render.com |
-| Hosting (frontend) | Vercel / Netlify |
+| Layer              | Technology                      |
+| ------------------ | ------------------------------- |
+| Frontend           | HTML5, CSS3, Vanilla JavaScript |
+| Backend            | Python 3, FastAPI, Uvicorn      |
+| Database ORM       | SQLAlchemy + PyMySQL            |
+| Database           | MySQL 8.0                       |
+| Hosting (backend)  | Render.com                      |
+| Hosting (frontend) | Vercel / Netlify                |
 
 ---
 
@@ -169,4 +181,4 @@ The URL is not linked from the main site — share it directly with teachers.
 
 ---
 
-*Built with ❤️ for TOP-Day.*
+_Built with ❤️ for TOP-Day._
