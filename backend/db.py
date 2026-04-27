@@ -86,7 +86,7 @@ def create_tables():
         print("⚠️  schema.sql not found — skipping table creation.")
         return
 
-    with open(schema_path, "r") as f:
+    with open(schema_path, "r", encoding="utf-8") as f:
         sql = f.read()
 
     # Split on semicolons so we can execute statement by statement

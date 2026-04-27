@@ -23,6 +23,7 @@ const elBtnSaveChallenge = document.getElementById("btn-save-challenge");
 const elBtnClearForm     = document.getElementById("btn-clear-form");
 const elInputQuestion    = document.getElementById("input-question");
 const elInputExpectedSql = document.getElementById("input-expected-sql");
+const elInputCategory    = document.getElementById("input-category");
 const elInputDifficulty  = document.getElementById("input-difficulty");
 const elInputHint        = document.getElementById("input-hint");
 const elSaveFeedback     = document.getElementById("save-feedback");
@@ -122,37 +123,40 @@ function switchTab(tabId) {
 // ADD CHALLENGE FORM
 // ─────────────────────────────────────────────────────────────────────────────
 async function handleSaveChallenge() {
-  // --- Validate ---
-  let valid = true;
+  const question = elInputQuestion.value.trim();
+  const expectedSql = elInputExpectedSql.value.trim();
+  const category = elInputCategory.value;
+  const difficulty = elInputDifficulty.value;
+  const hint = elInputHint.value.trim();
 
-  const fields = [
-    { el: elInputQuestion,    key: "question" },
-    { el: elInputExpectedSql, key: "expected_sql" },
-  ];
-  fields.forEach(({ el, key }) => {
-    const errEl = document.querySelector(`.field-error[data-field="${key}"]`);
-    if (!el.value.trim()) {
-      el.classList.add("error");
-      if (errEl) errEl.style.display = "block";
-      valid = false;
-    } else {
-      el.classList.remove("error");
-      if (errEl) errEl.style.display = "none";
-    }
-  });
+  // Reset errors
+  document.querySelectorAll(".field-error").forEach(el => el.style.display = "none");
+  document.querySelectorAll(".form-input").forEach(el => el.classList.remove("error"));
 
-  // Difficulty
-  const diffErrEl = document.querySelector('.field-error[data-field="difficulty"]');
-  if (!elInputDifficulty.value) {
+  // Validate
+  let hasError = false;
+  if (!question) {
+    document.querySelector('.field-error[data-field="question"]').style.display = "block";
+    elInputQuestion.classList.add("error");
+    hasError = true;
+  }
+  if (!expectedSql) {
+    document.querySelector('.field-error[data-field="expected_sql"]').style.display = "block";
+    elInputExpectedSql.classList.add("error");
+    hasError = true;
+  }
+  if (!category) {
+    document.querySelector('.field-error[data-field="category"]').style.display = "block";
+    elInputCategory.classList.add("error");
+    hasError = true;
+  }
+  if (!difficulty) {
+    document.querySelector('.field-error[data-field="difficulty"]').style.display = "block";
     elInputDifficulty.classList.add("error");
-    if (diffErrEl) diffErrEl.style.display = "block";
-    valid = false;
-  } else {
-    elInputDifficulty.classList.remove("error");
-    if (diffErrEl) diffErrEl.style.display = "none";
+    hasError = true;
   }
 
-  if (!valid) return;
+  if (hasError) return;
 
   // --- Submit ---
   elBtnSaveChallenge.disabled = true;
@@ -162,10 +166,11 @@ async function handleSaveChallenge() {
   try {
     await api("/admin/add-challenge", "POST",
       {
-        question_text:  elInputQuestion.value.trim(),
-        expected_query: elInputExpectedSql.value.trim(),
-        difficulty:     elInputDifficulty.value,
-        hint:           elInputHint.value.trim(),
+        question_text: question,
+        expected_query: expectedSql,
+        category: category,
+        difficulty: difficulty,
+        hint: hint || null,
       },
       { "X-Admin-Token": getAdminToken() }
     );
