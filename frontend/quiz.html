@@ -6,20 +6,13 @@
   <title>SQL Atlas — Quest Board</title>
   <link rel="stylesheet" href="css/style.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <!-- Canvas Confetti for success celebrations -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
-<body class="page-quiz dark-theme">
+<body class="page-quiz">
 
   <div id="tsparticles" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1;"></div>
-
-  <!-- Dynamic animated background glows -->
-  <div class="bg-animation">
-    <div class="glow glow-1"></div>
-    <div class="glow glow-2"></div>
-    <div class="glow glow-3"></div>
-  </div>
 
   <header class="glass-header">
     <div class="header-inner">
@@ -52,7 +45,7 @@
 
   <div class="quiz-layout">
     <!-- LEFT PANEL: Database Reference -->
-    <aside class="panel panel-reference glass-panel">
+    <aside class="panel panel-reference glass-panel fade-in-left">
       <h2 class="panel-title text-gradient">📋 Tome of Knowledge</h2>
       
       <div class="table-reference custom-scrollbar">
@@ -99,7 +92,7 @@
     <!-- CENTER PANEL: Editor & Results -->
     <main class="panel panel-editor">
       <!-- Question Card -->
-      <div class="question-card glass-panel">
+      <div class="question-card glass-panel fade-in-up">
         <div class="question-header">
           <span id="challenge-category" class="challenge-category">Absolute Beginner</span>
           <span id="challenge-number" class="challenge-num">Q.1</span>
@@ -108,14 +101,14 @@
           Loading quest...
         </p>
         <!-- Hint Box -->
-        <div id="hint-box" class="hint-box glass-panel-inner" style="display:none;">
-          <span class="hint-icon pulse-glow">💡</span>
+        <div id="hint-box" class="hint-box" style="display:none;">
+          <span class="hint-icon">💡</span>
           <span id="hint-text" class="type-effect"></span>
         </div>
       </div>
 
       <!-- SQL Editor -->
-      <div class="editor-wrapper glass-panel" id="editor-container">
+      <div class="editor-wrapper fade-in-up delay-1" id="editor-container">
         <div class="editor-toolbar">
           <span class="editor-label">SQL Terminal</span>
           <span class="editor-shortcut">Ctrl + Enter to run</span>
@@ -138,44 +131,60 @@
           <div class="actions-right">
             <button id="btn-prev" class="btn-ghost-glow btn-nav" disabled>← Prev</button>
             <button id="btn-next" class="btn-ghost-glow btn-nav" disabled>Next →</button>
-            <button id="btn-run" class="btn-primary btn-glow btn-run">
+            <button id="btn-run" class="btn-primary btn-run">
               ⚡ Execute
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Feedback / Error Banner -->
-      <div id="error-box" class="feedback-banner error-banner glass-panel-inner" style="display:none;">
-        <span class="error-icon">⚠️</span>
-        <span id="error-text"></span>
+      <!-- Feedback / Error Drawer (Duolingo Style) -->
+      <div id="error-box" class="error-drawer slide-up" style="display:none;">
+        <div class="error-drawer-content">
+          <div class="error-drawer-left">
+            <div class="error-icon-large drop-bounce">❌</div>
+            <div class="error-text-content">
+              <h3 class="error-drawer-title">Incorrect!</h3>
+              <p id="error-text"></p>
+            </div>
+          </div>
+          <button id="btn-error-retry" class="btn-error-action">Try Again</button>
+        </div>
       </div>
 
       <!-- Results Table -->
-      <div id="results-container" class="results-container glass-panel" style="display:none;">
+      <div id="results-container" class="results-container glass-panel slide-down" style="display:none;">
         <div class="results-header">
           <span class="results-title">Data Crystal (Results)</span>
           <span id="results-count" class="results-count badge-dark"></span>
         </div>
-        <div class="results-scroll custom-scrollbar">
+        <div class="results-scroll custom-scrollbar" style="overflow-x: auto;">
           <table id="results-table" class="results-table">
             <thead id="results-thead"></thead>
             <tbody id="results-tbody"></tbody>
           </table>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 1rem; width: 100%;">
+          <button id="btn-results-retry" class="btn-ghost-glow" style="display:none; flex: 1; font-size: 1.2rem; padding: 1rem;">
+            Keep Practicing
+          </button>
+          <button id="btn-results-next" class="btn-primary" style="display:none; flex: 2; font-size: 1.2rem; padding: 1rem;">
+            Excellent! Go to Next Quest ➔
+          </button>
         </div>
       </div>
     </main>
   </div>
 
   <!-- SUCCESS MODAL overlay -->
-  <div id="success-modal" class="modal-overlay glass-overlay" style="display:none;">
-    <div class="modal-card glass-panel pop-in">
+  <div id="success-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card pop-in">
       <div class="modal-icon drop-bounce" id="modal-emoji">🏆</div>
       <h2 class="modal-title text-gradient" id="modal-title-text">Quest Complete!</h2>
       <p class="modal-sub" id="modal-sub-text">+100 XP gained.</p>
       <div class="modal-actions">
-        <button id="btn-modal-next" class="btn-primary btn-glow">Next Quest ➔</button>
-        <button id="btn-modal-close" class="btn-ghost-glow">View Result</button>
+        <button id="btn-modal-next" class="btn-primary btn-full">Next Quest ➔</button>
+        <button id="btn-modal-close" class="btn-ghost-glow btn-full">View Result</button>
       </div>
     </div>
   </div>

@@ -53,39 +53,18 @@ document.addEventListener("DOMContentLoaded", () => {
     tsParticles.load("tsparticles", {
       background: { color: { value: "transparent" } },
       fpsLimit: 60,
-      interactivity: {
-        events: {
-          onClick: { enable: true, mode: "push" },
-          onHover: { enable: true, mode: "repulse" },
-          resize: true
-        },
-        modes: {
-          push: { quantity: 4 },
-          repulse: { distance: 100, duration: 0.4 }
-        }
-      },
       particles: {
-        color: { value: ["#7c3aed", "#06b6d4", "#f59e0b"] },
-        links: {
-          color: "#ffffff",
-          distance: 150,
-          enable: true,
-          opacity: 0.1,
-          width: 1
-        },
-        collisions: { enable: true },
-        move: {
-          direction: "none",
-          enable: true,
-          outModes: { default: "bounce" },
-          random: false,
-          speed: 1,
-          straight: false
-        },
-        number: { density: { enable: true, area: 800 }, value: 60 },
-        opacity: { value: 0.5 },
-        shape: { type: "circle" },
-        size: { value: { min: 1, max: 3 } }
+        color: { value: ["#4F46E5", "#0891B2", "#059669", "#D97706", "#DB2777"] },
+        links: { enable: true, color: "#4F46E5", opacity: 0.07, distance: 140, width: 1 },
+        move: { enable: true, speed: 0.7, direction: "none", random: true, outModes: { default: "bounce" } },
+        number: { value: 50, density: { enable: true, area: 900 } },
+        opacity: { value: { min: 0.15, max: 0.5 }, animation: { enable: true, speed: 0.4 } },
+        shape: { type: ["circle", "triangle"] },
+        size: { value: { min: 2, max: 5 } }
+      },
+      interactivity: {
+        events: { onHover: { enable: true, mode: "grab" }, onClick: { enable: true, mode: "push" } },
+        modes: { grab: { distance: 160, links: { opacity: 0.35 } }, push: { quantity: 3 } }
       },
       detectRetina: true
     });
