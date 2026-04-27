@@ -1,31 +1,22 @@
 // =============================================================================
-// quiz.js  —  SQL Atlas  |  Quiz Page Logic
-// =============================================================================
-// PURPOSE:
-//   Controls everything on quiz.html:
-//   - Loads a challenge from the API based on ?id= URL param
-//   - Sends the student's SQL to the backend on Run Query
-//   - Renders results in a table
-//   - Shows correct/incorrect feedback
-//   - Handles navigation between challenges
-//   - Shows hint after 2 failed attempts
-//
-// DEPENDS ON:  app.js  (must be loaded first in quiz.html)
+// quiz.js  —  SQL Atlas  |  Quiz Page Logic (Gamified)
 // =============================================================================
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-const TOTAL_CHALLENGES = 20;   // TODO: fetch this dynamically from GET /api/challenges
+const TOTAL_CHALLENGES = 100;
 const HINT_AFTER_ATTEMPTS = 2;
 
-// ─── State ────────────────────────────────────────────────────────────────────
+// Gamification State
 let currentChallengeId = 1;
 let failedAttempts = 0;
 let currentChallenge = null;
+let xp = 0;
+let soundEnabled = true;
 
-// ─── DOM References ───────────────────────────────────────────────────────────
+// DOM References
 const elEditor          = document.getElementById("sql-editor");
 const elQuestionText    = document.getElementById("question-text");
 const elChallengeNum    = document.getElementById("challenge-number");
+const elChallengeCat    = document.getElementById("challenge-category");
 const elProgressFill    = document.getElementById("progress-fill");
 const elProgressLabel   = document.getElementById("progress-label");
 const elDifficultyBadge = document.getElementById("difficulty-badge");
@@ -33,9 +24,6 @@ const elHintBox         = document.getElementById("hint-box");
 const elHintText        = document.getElementById("hint-text");
 const elErrorBox        = document.getElementById("error-box");
 const elErrorText       = document.getElementById("error-text");
-const elFeedbackBanner  = document.getElementById("feedback-banner");
-const elFeedbackIcon    = document.getElementById("feedback-icon");
-const elFeedbackText    = document.getElementById("feedback-text");
 const elResultsContainer= document.getElementById("results-container");
 const elResultsThead    = document.getElementById("results-thead");
 const elResultsTbody    = document.getElementById("results-tbody");
@@ -47,18 +35,49 @@ const elBtnPrev         = document.getElementById("btn-prev");
 const elBtnNext         = document.getElementById("btn-next");
 const elSuccessModal    = document.getElementById("success-modal");
 const elModalSubText    = document.getElementById("modal-sub-text");
+const elModalTitle      = document.getElementById("modal-title-text");
+const elModalEmoji      = document.getElementById("modal-emoji");
 const elBtnModalNext    = document.getElementById("btn-modal-next");
 const elBtnModalClose   = document.getElementById("btn-modal-close");
+const elXpTotal         = document.getElementById("xp-total");
+const elSoundToggle     = document.getElementById("btn-sound-toggle");
+
+// Audio setup
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+  if (!soundEnabled || !audioContext) return;
+  const osc = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  osc.connect(gain);
+  gain.connect(audioContext.destination);
+  
+  if (type === 'success') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+    osc.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+    osc.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+    gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.5);
+  } else if (type === 'error') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.2);
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
-// INIT — runs when page loads
+// INIT
 // ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  // Read challenge ID from URL: quiz.html?id=3
   currentChallengeId = parseInt(getParam("id")) || 1;
   loadChallenge(currentChallengeId);
 
-  // Wire up buttons
   elBtnRun.addEventListener("click", runQuery);
   elBtnClear.addEventListener("click", clearEditor);
   elBtnHint.addEventListener("click", showHint);
@@ -66,53 +85,73 @@ document.addEventListener("DOMContentLoaded", () => {
   elBtnNext.addEventListener("click", goNext);
   elBtnModalNext.addEventListener("click", () => { hideModal(); goNext(); });
   elBtnModalClose.addEventListener("click", hideModal);
+  
+  elSoundToggle.addEventListener("click", () => {
+    soundEnabled = !soundEnabled;
+    elSoundToggle.textContent = soundEnabled ? "🔊" : "🔇";
+    if(soundEnabled && audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+  });
 
-  // Allow Ctrl+Enter to run the query (power-user shortcut)
   elEditor.addEventListener("keydown", (e) => {
     if (e.ctrlKey && e.key === "Enter") runQuery();
   });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// TYPEWRITER EFFECT
+// ─────────────────────────────────────────────────────────────────────────────
+function typeWriter(element, text, speed = 15) {
+  element.innerHTML = '';
+  let i = 0;
+  function type() {
+    if (i < text.length) {
+      element.innerHTML += text.charAt(i);
+      i++;
+      setTimeout(type, speed);
+    }
+  }
+  type();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // LOAD CHALLENGE
 // ─────────────────────────────────────────────────────────────────────────────
 async function loadChallenge(id) {
-  // Reset UI state for the new challenge
   resetFeedback();
   failedAttempts = 0;
   elEditor.value = "";
   elHintBox.style.display = "none";
+  elResultsContainer.style.display = "none";
 
-  // Update progress bar
   const pct = Math.round((id / TOTAL_CHALLENGES) * 100);
   elProgressFill.style.width = `${pct}%`;
-  elProgressLabel.textContent = `Challenge ${id} of ${TOTAL_CHALLENGES}`;
-  elChallengeNum.textContent = `Challenge #${id}`;
+  elProgressLabel.textContent = `Quest ${id} of ${TOTAL_CHALLENGES}`;
+  elChallengeNum.textContent = `Q.${id}`;
 
-  // Update prev/next button states
   elBtnPrev.disabled = id <= 1;
   elBtnNext.disabled = id >= TOTAL_CHALLENGES;
 
-  // Fetch challenge from API
-  elQuestionText.textContent = "Loading...";
+  elQuestionText.textContent = "Summoning quest...";
   try {
     currentChallenge = await api(`/challenges/${id}`);
   } catch (e) {
-    elQuestionText.textContent = "Failed to load challenge. Is the server running?";
+    elQuestionText.textContent = "Failed to load quest. Is the magic server running?";
     return;
   }
 
-  // Render challenge
-  elQuestionText.textContent = currentChallenge.question_text;
-  elHintText.textContent = currentChallenge.hint || "";
+  typeWriter(elQuestionText, currentChallenge.question_text);
+  
+  if(elChallengeCat && currentChallenge.category) {
+    elChallengeCat.textContent = currentChallenge.category;
+  }
 
-  // Update difficulty badge
   const diff = currentChallenge.difficulty || "easy";
   elDifficultyBadge.textContent = diff.charAt(0).toUpperCase() + diff.slice(1);
   elDifficultyBadge.className = `diff-badge ${difficultyClass(diff)}`;
 
-  // Update page title and URL without reload
-  document.title = `SQL Atlas — Challenge ${id}`;
+  document.title = `SQL Atlas — Quest ${id}`;
   history.replaceState(null, "", `quiz.html?id=${id}`);
 }
 
@@ -122,58 +161,92 @@ async function loadChallenge(id) {
 async function runQuery() {
   const sql = elEditor.value.trim();
   if (!sql) {
-    showError("Please type a SQL query first.");
+    showError("Your scroll is empty. Write a query first.");
     return;
   }
 
-  // Show loading state on button
   elBtnRun.disabled = true;
-  elBtnRun.textContent = "Running...";
+  elBtnRun.innerHTML = "⏳ Casting...";
   resetFeedback();
 
   let data;
   try {
-    data = await api("/execute-query", "POST", {
-      query: sql,
-      challenge_id: currentChallengeId,
-    });
+    data = await api("/execute-query", "POST", { query: sql, challenge_id: currentChallengeId });
   } catch (e) {
     showError(e.message);
     elBtnRun.disabled = false;
-    elBtnRun.textContent = "▶ Run Query";
+    elBtnRun.innerHTML = "⚡ Execute";
     return;
   }
 
   elBtnRun.disabled = false;
-  elBtnRun.textContent = "▶ Run Query";
+  elBtnRun.innerHTML = "⚡ Execute";
 
   if (!data.success) {
-    // SQL error (syntax error, blocked keyword, etc.)
+    triggerShake();
+    playSound('error');
     showError(data.error);
     failedAttempts++;
-    if (failedAttempts >= HINT_AFTER_ATTEMPTS) showHint();
+    if (failedAttempts >= HINT_AFTER_ATTEMPTS) showHintBox();
     return;
   }
 
-  // Render results table
   renderResults(data.columns, data.rows, data.row_count);
 
-  // Show correct/incorrect feedback
   if (data.is_correct) {
-    showFeedback(true);
-    showModal(`You returned ${data.row_count} row${data.row_count !== 1 ? "s" : ""} — exactly right!`);
+    playSound('success');
+    fireConfetti();
+    
+    // Calculate XP
+    let gainedXp = currentChallenge.difficulty === 'hard' ? 200 : (currentChallenge.difficulty === 'medium' ? 150 : 100);
+    if(failedAttempts > 0) gainedXp = Math.floor(gainedXp * 0.8);
+    xp += gainedXp;
+    elXpTotal.textContent = xp.toLocaleString();
+
+    const messages = ["Legendary!", "Flawless Execution!", "Database Master!", "Query Accepted!"];
+    const msg = messages[Math.floor(Math.random() * messages.length)];
+    
+    showModal(msg, `+${gainedXp} XP gained. You returned ${data.row_count} rows.`);
   } else {
-    showFeedback(false);
+    triggerShake();
+    playSound('error');
+    showError("The spell executed, but the results don't match the prophecy. Try again.");
     failedAttempts++;
-    if (failedAttempts >= HINT_AFTER_ATTEMPTS) showHint();
+    if (failedAttempts >= HINT_AFTER_ATTEMPTS) showHintBox();
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RENDER RESULTS TABLE
+// GAMIFIED EFFECTS
+// ─────────────────────────────────────────────────────────────────────────────
+function triggerShake() {
+  const container = document.getElementById('editor-container');
+  container.classList.remove('shake');
+  void container.offsetWidth; // trigger reflow
+  container.classList.add('shake');
+}
+
+function fireConfetti() {
+  const count = 200;
+  const defaults = { origin: { y: 0.7 }, zIndex: 1100 };
+
+  function fire(particleRatio, opts) {
+    confetti(Object.assign({}, defaults, opts, {
+      particleCount: Math.floor(count * particleRatio)
+    }));
+  }
+
+  fire(0.25, { spread: 26, startVelocity: 55 });
+  fire(0.2, { spread: 60 });
+  fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+  fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+  fire(0.1, { spread: 120, startVelocity: 45 });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RENDER RESULTS
 // ─────────────────────────────────────────────────────────────────────────────
 function renderResults(columns, rows, count) {
-  // Build header row
   const tr = document.createElement("tr");
   columns.forEach(col => {
     const th = document.createElement("th");
@@ -183,7 +256,6 @@ function renderResults(columns, rows, count) {
   elResultsThead.innerHTML = "";
   elResultsThead.appendChild(tr);
 
-  // Build data rows
   elResultsTbody.innerHTML = "";
   rows.forEach(row => {
     const tr = document.createElement("tr");
@@ -195,39 +267,34 @@ function renderResults(columns, rows, count) {
     elResultsTbody.appendChild(tr);
   });
 
-  // Row count label
-  elResultsCount.textContent = `${count} row${count !== 1 ? "s" : ""}`;
-
-  // Show the table
+  elResultsCount.textContent = `${count} rows`;
   elResultsContainer.style.display = "block";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FEEDBACK HELPERS
+// HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
-function showFeedback(isCorrect) {
-  elFeedbackBanner.style.display = "flex";
-  elFeedbackBanner.className = `feedback-banner ${isCorrect ? "feedback-correct" : "feedback-wrong"}`;
-  elFeedbackIcon.textContent = isCorrect ? "🎉" : "❌";
-  elFeedbackText.textContent = isCorrect
-    ? "Correct! Great query!"
-    : "Not quite right. Check your query and try again.";
-}
-
 function showError(message) {
   elErrorBox.style.display = "flex";
   elErrorText.textContent = message;
 }
 
 function resetFeedback() {
-  elFeedbackBanner.style.display = "none";
   elErrorBox.style.display = "none";
+}
+
+function showHintBox() {
+  elBtnHint.classList.add('pulse-glow');
 }
 
 function showHint() {
   if (currentChallenge && currentChallenge.hint) {
-    elHintText.textContent = currentChallenge.hint;
     elHintBox.style.display = "flex";
+    typeWriter(elHintText, currentChallenge.hint);
+    elBtnHint.classList.remove('pulse-glow');
+  } else {
+    elHintBox.style.display = "flex";
+    elHintText.textContent = "No hint available for this quest.";
   }
 }
 
@@ -236,11 +303,13 @@ function clearEditor() {
   elEditor.focus();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SUCCESS MODAL
-// ─────────────────────────────────────────────────────────────────────────────
-function showModal(subText) {
+function showModal(title, subText) {
+  elModalTitle.textContent = title;
   elModalSubText.textContent = subText;
+  
+  const emojis = ["🏆", "🌟", "🔥", "⚡", "💎"];
+  elModalEmoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+  
   elSuccessModal.style.display = "flex";
 }
 
@@ -248,9 +317,6 @@ function hideModal() {
   elSuccessModal.style.display = "none";
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NAVIGATION
-// ─────────────────────────────────────────────────────────────────────────────
 function goPrev() {
   if (currentChallengeId > 1) {
     currentChallengeId--;

@@ -3,158 +3,140 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SQL Atlas — Learn SQL by Exploring the World</title>
+  <title>SQL Atlas — The Ultimate SQL Journey</title>
   <link rel="stylesheet" href="css/style.css"/>
-  <!--
-    Google Fonts:
-    - Nunito     → friendly UI font (headings, body)
-    - Source Code Pro → monospace font (SQL editor, code examples)
-  -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 </head>
 <body class="page-home">
+  <div id="tsparticles" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1;"></div>
 
-  <!-- ================================================================
-       HEADER  —  logo + nav
-       ================================================================ -->
-  <header class="site-header">
+  <!-- Dynamic animated background glows -->
+  <div class="bg-animation">
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    <div class="glow glow-3"></div>
+  </div>
+
+  <header class="glass-header">
     <div class="header-inner">
-      <!--
-        TODO: Replace the emoji globe with the actual SVG logo from /assets/logo.svg
-        <img src="assets/logo.svg" alt="SQL Atlas logo" class="logo-img"/>
-      -->
       <div class="logo">
         <span class="logo-icon">🌍</span>
         <span class="logo-text">SQL Atlas</span>
       </div>
       <nav class="site-nav">
-        <!-- Links intentionally minimal — students only need Start Game -->
-        <a href="admin_teacher.html" class="nav-link">Teacher Login</a>
+        <a href="admin_teacher.html" class="nav-link btn-ghost-glow">Teacher Portal</a>
       </nav>
     </div>
   </header>
 
-  <!-- ================================================================
-       HERO SECTION  —  tagline + CTA button
-       ================================================================ -->
-  <main class="hero-section">
+  <main class="hero-section glass-container">
     <div class="hero-content">
+      <div class="badge-container">
+        <span class="hero-badge pulse-glow">🎮 Level up your SQL skills</span>
+      </div>
 
-      <!-- Badge -->
-      <span class="hero-badge">🎮 Learn SQL the fun way</span>
-
-      <!-- Main Headline -->
-      <h1 class="hero-headline">
-        Learn SQL by<br/>
-        <span class="headline-accent">Exploring the World</span>
+      <h1 class="hero-headline type-effect">
+        Conquer Data by<br/>
+        <span class="headline-accent text-gradient">Exploring the World</span>
       </h1>
 
-      <p class="hero-sub">
-        Answer real geography questions using SQL.
-        Start with the basics and work your way up to advanced queries —
-        no setup required.
+      <p class="hero-sub fade-in-up">
+        Embark on an epic journey through a massive geographic database. 
+        From basic queries to correlated subqueries, your code is your weapon.
       </p>
 
-      <!-- CTA Button — navigates to the first challenge -->
-      <!--
-        TODO: Optionally fetch /api/challenges from the backend to find
-              the first challenge ID dynamically instead of hardcoding ?id=1
-      -->
-      <a href="quiz.html?id=1" class="btn-primary btn-xl">
-        Start Game 🚀
-      </a>
-
-      <!-- Quick stats row -->
-      <div class="stats-row">
-        <div class="stat-item"><strong>20</strong><span>Challenges</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat-item"><strong>3</strong><span>Difficulty Levels</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat-item"><strong>5</strong><span>Database Tables</span></div>
+      <div class="hero-actions fade-in-up delay-1">
+        <a href="quiz.html?id=1" class="btn-primary btn-xl btn-glow">
+          <span class="btn-text">Start Your Journey</span>
+          <span class="btn-icon">⚔️</span>
+        </a>
       </div>
-    </div>
 
-    <!-- Decorative right-side illustration placeholder -->
-    <div class="hero-visual">
-      <!--
-        TODO: Replace with a real globe/world-map illustration
-        Suggested tool: use an SVG world map from https://simplemaps.com/resources/svg-world
-      -->
-      <div class="globe-placeholder">🗺️</div>
+      <div class="stats-row fade-in-up delay-2">
+        <div class="stat-item">
+          <strong class="counter" data-target="100">100</strong>
+          <span>Epic Quests</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <strong class="counter" data-target="7">7</strong>
+          <span>Skill Tiers</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <strong class="counter" data-target="150000">150K+</strong>
+          <span>Cities to Explore</span>
+        </div>
+      </div>
     </div>
   </main>
 
-  <!-- ================================================================
-       HOW TO PLAY SECTION
-       ================================================================ -->
-  <section class="how-to-play">
-    <h2 class="section-title">How to Play</h2>
-    <div class="steps-grid">
-
-      <div class="step-card">
-        <div class="step-number">1</div>
-        <h3>Read the Question</h3>
-        <p>Each challenge asks you a geography question like <em>"List all countries in Asia."</em></p>
+  <!-- Interactive Map Preview -->
+  <section class="features-section glass-container fade-in-up delay-3">
+    <h2 class="section-title text-gradient">Your Skill Tree</h2>
+    <div class="skill-tree-grid">
+      <div class="skill-node">
+        <div class="node-icon">🌱</div>
+        <h3>Beginner</h3>
+        <p>Master SELECT, LIMIT & ORDER BY</p>
       </div>
-
-      <div class="step-card">
-        <div class="step-number">2</div>
-        <h3>Write Your SQL</h3>
-        <p>Type a <code>SELECT</code> statement in the code editor. Use the database diagram as your guide.</p>
+      <div class="skill-line"></div>
+      <div class="skill-node">
+        <div class="node-icon">🛡️</div>
+        <h3>Filtering</h3>
+        <p>Wield WHERE & Scalar Functions</p>
       </div>
-
-      <div class="step-card">
-        <div class="step-number">3</div>
-        <h3>Run & Check</h3>
-        <p>Click <strong>Run Query</strong>. See your results instantly and find out if you got it right!</p>
+      <div class="skill-line"></div>
+      <div class="skill-node">
+        <div class="node-icon">🔗</div>
+        <h3>Joins</h3>
+        <p>Connect dimensions with INNER/LEFT JOINs</p>
       </div>
-
+      <div class="skill-line"></div>
+      <div class="skill-node">
+        <div class="node-icon">🔮</div>
+        <h3>Advanced</h3>
+        <p>Command Subqueries & GROUP BY</p>
+      </div>
     </div>
   </section>
 
-  <!-- ================================================================
-       DIFFICULTY PREVIEW SECTION
-       ================================================================ -->
-  <section class="difficulty-preview">
-    <h2 class="section-title">What You'll Learn</h2>
-    <div class="difficulty-grid">
-
-      <div class="diff-card diff-easy">
-        <span class="diff-badge easy">Easy</span>
-        <h3>Basic SELECT</h3>
-        <p>WHERE, column filtering, COUNT</p>
-        <code>SELECT population FROM countries<br/>WHERE name = 'France'</code>
-      </div>
-
-      <div class="diff-card diff-medium">
-        <span class="diff-badge medium">Medium</span>
-        <h3>Filtering & Sorting</h3>
-        <p>IN, BETWEEN, ORDER BY, GROUP BY</p>
-        <code>SELECT name, population FROM countries<br/>ORDER BY population DESC LIMIT 5</code>
-      </div>
-
-      <div class="diff-card diff-hard">
-        <span class="diff-badge hard">Hard</span>
-        <h3>Joins & Aggregates</h3>
-        <p>JOIN, SUM, HAVING, subqueries</p>
-        <code>SELECT countries.name, languages.name<br/>FROM countries JOIN country_languages...</code>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ================================================================
-       FOOTER
-       ================================================================ -->
-  <footer class="site-footer">
-    <p>SQL Atlas — Built by students, for students. 🌍</p>
-    <!--
-      TODO: Add the project GitHub link here for TOP-Day visitors
-    -->
+  <footer class="site-footer fade-in-up delay-4">
+    <p>Forged for high school adventurers. 🌍✨</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles-engine@2/tsparticles.engine.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles-basic@2/tsparticles.basic.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles-interaction-particles-links@2/tsparticles.interaction.particles.links.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles-move-base@2/tsparticles.move.base.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles-shape-circle@2/tsparticles.shape.circle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles-updater-color@2/tsparticles.updater.color.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles-updater-opacity@2/tsparticles.updater.opacity.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles-updater-out-modes@2/tsparticles.updater.out-modes.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles-updater-size@2/tsparticles.updater.size.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    // Simple counter animation for stats
+    const counters = document.querySelectorAll('.counter');
+    const speed = 200; // The lower the slower
 
+    counters.forEach(counter => {
+      const updateCount = () => {
+        const target = +counter.getAttribute('data-target');
+        const count = +counter.innerText;
+        const inc = target / speed;
+
+        if (count < target) {
+          counter.innerText = Math.ceil(count + inc);
+          setTimeout(updateCount, 15);
+        } else {
+          counter.innerText = target.toLocaleString() + (target > 1000 ? '+' : '');
+        }
+      };
+      updateCount();
+    });
+  </script>
 </body>
 </html>

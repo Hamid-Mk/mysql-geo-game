@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from pydantic import BaseModel
 from typing import Optional
-from passlib.context import CryptContext
+import bcrypt
 
 from db import get_db
 
@@ -35,7 +35,8 @@ router = APIRouter()
 # Simple token store — in production use JWT or a real session system
 VALID_TOKENS: set = set()
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from dotenv import load_dotenv
+load_dotenv()
 
 # Load the hashed admin password from environment
 # To generate a hash: python -c "from passlib.context import CryptContext; c=CryptContext(schemes=['bcrypt']); print(c.hash('yourpassword'))"
@@ -93,6 +94,7 @@ class AddChallengeRequest(BaseModel):
     question_text: str
     expected_query: str
     difficulty: str       # "easy" | "medium" | "hard"
+    category: str         # The category of the challenge
     hint: Optional[str] = ""
 
 
@@ -127,12 +129,12 @@ def get_all_challenges(db: Session = Depends(get_db)):
 
     Response shape:
     [
-      { "id": 1, "question_text": "...", "difficulty": "easy", "hint": "..." },
+      { "id": 1, "question_text": "...", "difficulty": "easy", "category": "Beginner", "hint": "..." },
       ...
     ]
     """
     result = db.execute(
-        text("SELECT id, question_text, difficulty, hint FROM challenges ORDER BY id ASC")
+        text("SELECT id, question_text, difficulty, category, hint FROM challenges ORDER BY id ASC")
     )
     rows = result.mappings().all()
     return [dict(row) for row in rows]
@@ -150,7 +152,7 @@ def get_challenge(challenge_id: int, db: Session = Depends(get_db)):
     TODO: Add a 'completed_by_session' flag once session tracking is added.
     """
     result = db.execute(
-        text("SELECT id, question_text, difficulty, hint FROM challenges WHERE id = :id"),
+        text("SELECT id, question_text, difficulty, category, hint FROM challenges WHERE id = :id"),
         {"id": challenge_id}
     )
     row = result.mappings().first()
@@ -198,7 +200,7 @@ def execute_query(body: ExecuteQueryRequest, db: Session = Depends(get_db)):
         # Return a friendly error — not a raw Python traceback
         return {
             "success": False,
-            "error": f"SQL Error: {str(e).split('(')[0].strip()}"
+            "error": f"SQL Error: {str(e.orig) if hasattr(e, 'orig') else str(e)}"
         }
 
     # --- Step 3: Fetch expected query from DB ---
@@ -249,8 +251,11 @@ def admin_login(body: AdminLoginRequest):
     if not ADMIN_PASSWORD_HASH:
         raise HTTPException(status_code=500, detail="Admin password not configured.")
 
-    if not pwd_context.verify(body.password, ADMIN_PASSWORD_HASH):
-        raise HTTPException(status_code=401, detail="Incorrect password.")
+    try:
+        if not bcrypt.checkpw(body.password.encode('utf-8'), ADMIN_PASSWORD_HASH.encode('utf-8')):
+            raise HTTPException(status_code=401, detail="Incorrect password.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error verifying password. Please check backend config.")
 
     # Generate a simple random token
     import secrets
@@ -285,13 +290,14 @@ def add_challenge(
 
     db.execute(
         text("""
-            INSERT INTO challenges (question_text, expected_query, difficulty, hint)
-            VALUES (:question_text, :expected_query, :difficulty, :hint)
+            INSERT INTO challenges (question_text, expected_query, difficulty, category, hint)
+            VALUES (:question_text, :expected_query, :difficulty, :category, :hint)
         """),
         {
             "question_text": body.question_text,
             "expected_query": body.expected_query,
             "difficulty": body.difficulty,
+            "category": body.category,
             "hint": body.hint,
         }
     )
