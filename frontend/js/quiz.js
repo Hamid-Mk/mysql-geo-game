@@ -41,6 +41,9 @@ const elBtnModalNext    = document.getElementById("btn-modal-next");
 const elBtnModalClose   = document.getElementById("btn-modal-close");
 const elXpTotal         = document.getElementById("xp-total");
 const elSoundToggle     = document.getElementById("btn-sound-toggle");
+const elBtnResultsNext  = document.getElementById("btn-results-next");
+const elBtnResultsRetry = document.getElementById("btn-results-retry");
+const elBtnErrorRetry   = document.getElementById("btn-error-retry");
 
 // Audio setup
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -86,6 +89,19 @@ document.addEventListener("DOMContentLoaded", () => {
   elBtnModalNext.addEventListener("click", () => { hideModal(); goNext(); });
   elBtnModalClose.addEventListener("click", hideModal);
   
+  if (elBtnResultsNext) elBtnResultsNext.addEventListener("click", goNext);
+  if (elBtnResultsRetry) elBtnResultsRetry.addEventListener("click", () => {
+    elEditor.focus();
+    elEditor.parentElement.style.boxShadow = "0 0 0 4px var(--primary)";
+    setTimeout(() => elEditor.parentElement.style.boxShadow = "var(--shadow-lg)", 700);
+  });
+  if (elBtnErrorRetry) elBtnErrorRetry.addEventListener("click", () => {
+    resetFeedback();
+    elEditor.focus();
+    elEditor.parentElement.style.boxShadow = "0 0 0 4px var(--error)";
+    setTimeout(() => elEditor.parentElement.style.boxShadow = "var(--shadow-lg)", 700);
+  });
+  
   elSoundToggle.addEventListener("click", () => {
     soundEnabled = !soundEnabled;
     elSoundToggle.textContent = soundEnabled ? "🔊" : "🔇";
@@ -124,6 +140,8 @@ async function loadChallenge(id) {
   elEditor.value = "";
   elHintBox.style.display = "none";
   elResultsContainer.style.display = "none";
+  if (elBtnResultsNext) elBtnResultsNext.style.display = "none";
+  if (elBtnResultsRetry) elBtnResultsRetry.style.display = "none";
 
   const pct = Math.round((id / TOTAL_CHALLENGES) * 100);
   elProgressFill.style.width = `${pct}%`;
@@ -150,6 +168,12 @@ async function loadChallenge(id) {
   const diff = currentChallenge.difficulty || "easy";
   elDifficultyBadge.textContent = diff.charAt(0).toUpperCase() + diff.slice(1);
   elDifficultyBadge.className = `diff-badge ${difficultyClass(diff)}`;
+
+  const questionCard = document.querySelector('.question-card');
+  if (questionCard) {
+    questionCard.classList.remove('is-easy','is-medium','is-hard');
+    questionCard.classList.add(`is-${diff}`);
+  }
 
   document.title = `SQL Atlas — Quest ${id}`;
   history.replaceState(null, "", `quiz.html?id=${id}`);
@@ -194,6 +218,15 @@ async function runQuery() {
   renderResults(data.columns, data.rows, data.row_count);
 
   if (data.is_correct) {
+    if (elBtnResultsNext) elBtnResultsNext.style.display = "block";
+    if (elBtnResultsRetry) elBtnResultsRetry.style.display = "block";
+    
+    // Auto-scroll the panel editor to the bottom so the buttons are guaranteed to be visible
+    setTimeout(() => {
+      const panel = document.querySelector('.panel-editor');
+      if (panel) panel.scrollTop = panel.scrollHeight;
+    }, 100);
+    
     playSound('success');
     fireConfetti();
     
@@ -202,6 +235,14 @@ async function runQuery() {
     if(failedAttempts > 0) gainedXp = Math.floor(gainedXp * 0.8);
     xp += gainedXp;
     elXpTotal.textContent = xp.toLocaleString();
+
+    const xpEl = document.querySelector('.xp-counter');
+    if (xpEl) {
+      xpEl.classList.remove('xp-bump');
+      void xpEl.offsetWidth;
+      xpEl.classList.add('xp-bump');
+      setTimeout(() => xpEl.classList.remove('xp-bump'), 500);
+    }
 
     const messages = ["Legendary!", "Flawless Execution!", "Database Master!", "Query Accepted!"];
     const msg = messages[Math.floor(Math.random() * messages.length)];
@@ -274,13 +315,30 @@ function renderResults(columns, rows, count) {
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
+let feedbackTimeout = null;
+
 function showError(message) {
+  if (feedbackTimeout) {
+    clearTimeout(feedbackTimeout);
+    feedbackTimeout = null;
+  }
+  elErrorBox.classList.remove("slide-down");
+  elErrorBox.classList.add("slide-up");
   elErrorBox.style.display = "flex";
   elErrorText.textContent = message;
 }
 
 function resetFeedback() {
-  elErrorBox.style.display = "none";
+  if (feedbackTimeout) {
+    clearTimeout(feedbackTimeout);
+    feedbackTimeout = null;
+  }
+  elErrorBox.classList.remove("slide-up");
+  elErrorBox.classList.add("slide-down");
+  feedbackTimeout = setTimeout(() => {
+    elErrorBox.style.display = "none";
+    elErrorBox.classList.remove("slide-down");
+  }, 300);
 }
 
 function showHintBox() {

@@ -6,18 +6,11 @@
   <title>SQL Atlas — Teacher Portal</title>
   <link rel="stylesheet" href="css/style.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 </head>
-<body class="page-admin dark-theme">
+<body class="page-admin">
 
   <div id="tsparticles" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1;"></div>
-
-  <!-- Dynamic animated background glows -->
-  <div class="bg-animation">
-    <div class="glow glow-1"></div>
-    <div class="glow glow-2"></div>
-    <div class="glow glow-3"></div>
-  </div>
 
   <header class="glass-header">
     <div class="header-inner">
@@ -25,15 +18,15 @@
         <span class="logo-icon">🌍</span>
         <span class="logo-text">SQL Atlas</span>
       </a>
-      <span class="admin-badge badge-dark">Teacher Portal</span>
+      <span class="admin-badge">Teacher Portal</span>
     </div>
   </header>
 
   <main class="admin-main">
 
     <!-- LOGIN FORM -->
-    <section id="login-section" class="admin-card login-card glass-panel fade-in-up">
-      <div class="login-icon pulse-glow">🔐</div>
+    <section id="login-section" class="admin-card login-card fade-in-up">
+      <div class="login-icon drop-bounce">🔐</div>
       <h1 class="admin-title text-gradient">Teacher Login</h1>
       <p class="admin-sub">Enter the master passphrase to access the curriculum.</p>
 
@@ -46,43 +39,43 @@
           placeholder="Enter teacher password"
           autocomplete="current-password"
         />
-        <span id="login-error" class="field-error" style="display:none;">
+        <span id="login-error" class="field-error text-error" style="display:none; color: var(--error); margin-top: 0.5rem; font-weight: bold; display: block;">
           ❌ Incorrect password.
         </span>
       </div>
 
-      <button id="btn-login" class="btn-primary btn-full btn-glow">Access Portal ➔</button>
-      <p class="login-hint text-muted">
+      <button id="btn-login" class="btn-primary btn-full">Access Portal ➔</button>
+      <p class="login-hint text-muted" style="margin-top: 1rem;">
         <small>Hint: The password is set in the backend <code>.env</code> file.</small>
       </p>
     </section>
 
     <!-- DASHBOARD -->
-    <section id="dashboard-section" class="dashboard-section" style="display:none;">
-      <div class="dashboard-header glass-panel">
-        <h1 class="admin-title text-gradient">Welcome, Teacher! 👋</h1>
-        <button id="btn-logout" class="btn-ghost-glow">Logout</button>
+    <section id="dashboard-section" class="dashboard-section fade-in-up delay-1" style="display:none;">
+      <div class="admin-card" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h1 class="admin-title text-gradient" style="margin: 0;">Welcome, Teacher! 👋</h1>
+          <button id="btn-logout" class="btn-ghost-glow">Logout</button>
+        </div>
       </div>
 
-      <div class="tab-bar glass-panel-inner">
+      <div class="tab-bar">
         <button class="tab-btn active" data-tab="add-challenge">➕ Create Quest</button>
         <button class="tab-btn" data-tab="view-challenges">📋 View All Quests</button>
       </div>
 
       <!-- Tab: Add Challenge -->
-      <div id="tab-add-challenge" class="tab-panel admin-card glass-panel">
-        <h2 class="card-title text-gradient">Forge a New Quest</h2>
+      <div id="tab-add-challenge" class="tab-panel admin-card">
+        <h2 class="admin-title text-gradient" style="font-size: 1.8rem;">Forge a New Quest</h2>
 
         <div class="form-group">
           <label for="input-question" class="form-label">Quest Objective *</label>
           <textarea id="input-question" class="form-input form-textarea" rows="2" placeholder="e.g. Find all cities in Japan."></textarea>
-          <span class="field-error" data-field="question" style="display:none;">Required.</span>
         </div>
 
         <div class="form-group">
           <label for="input-expected-sql" class="form-label">Expected SQL Solution *</label>
           <textarea id="input-expected-sql" class="form-input form-textarea sql-editor custom-scrollbar" rows="3" placeholder="SELECT * FROM cities..."></textarea>
-          <span class="field-error" data-field="expected_sql" style="display:none;">Required.</span>
         </div>
 
         <div class="form-group">
@@ -97,7 +90,6 @@
             <option value="Correlated Subqueries">Correlated Subqueries</option>
             <option value="Group By">Group By</option>
           </select>
-          <span class="field-error" data-field="category" style="display:none;">Please select a category.</span>
         </div>
 
         <div class="form-group">
@@ -108,7 +100,6 @@
             <option value="medium">🟡 Medium</option>
             <option value="hard">🔴 Hard</option>
           </select>
-          <span class="field-error" data-field="difficulty" style="display:none;">Please select a difficulty.</span>
         </div>
 
         <div class="form-group">
@@ -116,19 +107,19 @@
           <input type="text" id="input-hint" class="form-input" placeholder="e.g. Use an INNER JOIN..."/>
         </div>
 
-        <div class="form-actions">
-          <button id="btn-save-challenge" class="btn-primary btn-glow">💾 Forge Quest</button>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+          <button id="btn-save-challenge" class="btn-primary">💾 Forge Quest</button>
           <button id="btn-clear-form" class="btn-ghost-glow">Clear</button>
         </div>
-        <div id="save-feedback" class="save-feedback text-muted" style="display:none;"></div>
+        <div id="save-feedback" class="save-feedback text-muted" style="margin-top: 1rem; display:none;"></div>
       </div>
 
       <!-- Tab: View Challenges -->
-      <div id="tab-view-challenges" class="tab-panel admin-card glass-panel" style="display:none;">
-        <div class="dashboard-header">
-          <h2 class="card-title text-gradient">All Quests</h2>
-          <div class="filter-row">
-            <select id="filter-difficulty" class="form-input form-select form-select-sm">
+      <div id="tab-view-challenges" class="tab-panel admin-card" style="display:none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+          <h2 class="admin-title text-gradient" style="font-size: 1.8rem; margin: 0;">All Quests</h2>
+          <div style="display: flex; gap: 1rem; align-items: center;">
+            <select id="filter-difficulty" class="form-input form-select" style="padding: 0.5rem 1rem; width: auto;">
               <option value="">All Difficulties</option>
               <option value="easy">Easy</option>
               <option value="medium">Medium</option>

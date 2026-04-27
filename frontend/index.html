@@ -6,17 +6,10 @@
   <title>SQL Atlas — The Ultimate SQL Journey</title>
   <link rel="stylesheet" href="css/style.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 </head>
 <body class="page-home">
   <div id="tsparticles" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1;"></div>
-
-  <!-- Dynamic animated background glows -->
-  <div class="bg-animation">
-    <div class="glow glow-1"></div>
-    <div class="glow glow-2"></div>
-    <div class="glow glow-3"></div>
-  </div>
 
   <header class="glass-header">
     <div class="header-inner">
@@ -30,30 +23,37 @@
     </div>
   </header>
 
-  <main class="hero-section glass-container">
+  <main class="hero-section">
+    <!-- Animated floating blobs inside hero -->
+    <div class="hero-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+    
     <div class="hero-content">
-      <div class="badge-container">
-        <span class="hero-badge pulse-glow">🎮 Level up your SQL skills</span>
+      <div class="badge-container fade-in-up">
+        <span class="hero-badge">🎮 Level up your SQL skills</span>
       </div>
 
-      <h1 class="hero-headline type-effect">
+      <h1 class="hero-headline fade-in-up delay-1">
         Conquer Data by<br/>
         <span class="headline-accent text-gradient">Exploring the World</span>
       </h1>
 
-      <p class="hero-sub fade-in-up">
+      <p class="hero-sub fade-in-up delay-1">
         Embark on an epic journey through a massive geographic database. 
         From basic queries to correlated subqueries, your code is your weapon.
       </p>
 
-      <div class="hero-actions fade-in-up delay-1">
-        <a href="quiz.html?id=1" class="btn-primary btn-xl btn-glow">
+      <div class="hero-actions fade-in-up delay-2">
+        <a href="quiz.html?id=1" class="btn-primary btn-xl pulse-glow" style="transform: scale(1.1); margin-top: 1rem;">
           <span class="btn-text">Start Your Journey</span>
           <span class="btn-icon">⚔️</span>
         </a>
       </div>
 
-      <div class="stats-row fade-in-up delay-2">
+      <div class="stats-row fade-in-up delay-3">
         <div class="stat-item">
           <strong class="counter" data-target="100">100</strong>
           <span>Epic Quests</span>
@@ -73,8 +73,8 @@
   </main>
 
   <!-- Interactive Map Preview -->
-  <section class="features-section glass-container fade-in-up delay-3">
-    <h2 class="section-title text-gradient">Your Skill Tree</h2>
+  <section class="features-section fade-in-up delay-4">
+    <h2>Your Skill Tree</h2>
     <div class="skill-tree-grid">
       <div class="skill-node">
         <div class="node-icon">🌱</div>
@@ -118,25 +118,34 @@
   <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
   <script src="js/app.js"></script>
   <script>
-    // Simple counter animation for stats
+    // Simple counter animation for stats with IntersectionObserver
     const counters = document.querySelectorAll('.counter');
-    const speed = 200; // The lower the slower
+    const speed = 200; 
 
-    counters.forEach(counter => {
-      const updateCount = () => {
-        const target = +counter.getAttribute('data-target');
-        const count = +counter.innerText;
-        const inc = target / speed;
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const counter = entry.target;
+          const target = +counter.getAttribute('data-target');
+          let count = 0;
+          const inc = target / speed;
 
-        if (count < target) {
-          counter.innerText = Math.ceil(count + inc);
-          setTimeout(updateCount, 15);
-        } else {
-          counter.innerText = target.toLocaleString() + (target > 1000 ? '+' : '');
+          const updateCount = () => {
+            if (count < target) {
+              count += inc;
+              counter.innerText = Math.ceil(count);
+              setTimeout(updateCount, 15);
+            } else {
+              counter.innerText = target.toLocaleString() + (target > 1000 ? '+' : '');
+            }
+          };
+          updateCount();
+          observer.unobserve(counter);
         }
-      };
-      updateCount();
-    });
+      });
+    }, { threshold: 0.5 });
+
+    counters.forEach(counter => observer.observe(counter));
   </script>
 </body>
 </html>
