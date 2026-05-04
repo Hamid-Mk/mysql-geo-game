@@ -95,6 +95,7 @@ class AddChallengeRequest(BaseModel):
     expected_query: str
     difficulty: str       # "easy" | "medium" | "hard"
     category: str         # The category of the challenge
+    level: Optional[str] = "Beginner"
     hint: Optional[str] = ""
 
 
@@ -134,7 +135,7 @@ def get_all_challenges(db: Session = Depends(get_db)):
     ]
     """
     result = db.execute(
-        text("SELECT id, question_text, difficulty, category, hint FROM challenges ORDER BY id ASC")
+        text("SELECT id, question_text, difficulty, category, level, hint FROM challenges ORDER BY id ASC")
     )
     rows = result.mappings().all()
     return [dict(row) for row in rows]
@@ -152,7 +153,7 @@ def get_challenge(challenge_id: int, db: Session = Depends(get_db)):
     TODO: Add a 'completed_by_session' flag once session tracking is added.
     """
     result = db.execute(
-        text("SELECT id, question_text, difficulty, category, hint FROM challenges WHERE id = :id"),
+        text("SELECT id, question_text, difficulty, category, level, hint FROM challenges WHERE id = :id"),
         {"id": challenge_id}
     )
     row = result.mappings().first()
@@ -282,22 +283,29 @@ def add_challenge(
           before saving, to catch typos in the answer key.
     """
     allowed_difficulties = {"easy", "medium", "hard"}
+    allowed_levels = {"Beginner", "Intermediate", "Advanced"}
     if body.difficulty not in allowed_difficulties:
         raise HTTPException(
             status_code=400,
             detail=f"Difficulty must be one of: {allowed_difficulties}"
         )
+    if body.level not in allowed_levels:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Level must be one of: {allowed_levels}"
+        )
 
     db.execute(
         text("""
-            INSERT INTO challenges (question_text, expected_query, difficulty, category, hint)
-            VALUES (:question_text, :expected_query, :difficulty, :category, :hint)
+            INSERT INTO challenges (question_text, expected_query, difficulty, category, level, hint)
+            VALUES (:question_text, :expected_query, :difficulty, :category, :level, :hint)
         """),
         {
             "question_text": body.question_text,
             "expected_query": body.expected_query,
             "difficulty": body.difficulty,
             "category": body.category,
+            "level": body.level,
             "hint": body.hint,
         }
     )

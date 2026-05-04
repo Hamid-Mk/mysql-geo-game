@@ -1,4 +1,4 @@
-CREATE TABLE `states` (  `id` mediumint unsigned NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `states` (  `id` mediumint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `country_id` mediumint unsigned NOT NULL,
   `country_code` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -5327,4 +5327,3 @@ INSERT INTO `states` (`id`, `name`, `country_id`, `country_code`, `country_name`
 (1954, 'Matabeleland North', 247, 'ZW', 'Zimbabwe', '-18.92837150', '27.49922310', 827645, 'province'),
 (1952, 'Matabeleland South', 247, 'ZW', 'Zimbabwe', '-20.73648010', '28.93964950', 760345, 'province'),
 (1957, 'Midlands', 247, 'ZW', 'Zimbabwe', '-19.27850430', '29.87908520', 10831000, 'province');
-

@@ -1,4 +1,4 @@
-CREATE TABLE `countries` (  `id` mediumint unsigned NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `countries` (  `id` mediumint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `iso2` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `iso3` char(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -265,4 +265,3 @@ INSERT INTO `countries` (`id`, `name`, `iso2`, `iso3`, `capital`, `currency`, `c
 (245, 'Yemen', 'YE', 'YEM', 'Sanaa', 'YER', 'Yemeni rial', 17401, '15.00000000', '48.00000000', 'Yemeni', '967', 32684503, 'Asia', 'Western Asia'),
 (246, 'Zambia', 'ZM', 'ZMB', 'Lusaka', 'ZMW', 'Zambian kwacha', 28910, '-15.00000000', '30.00000000', 'Zambian', '260', 19693423, 'Africa', 'Southern Africa'),
 (247, 'Zimbabwe', 'ZW', 'ZWE', 'Harare', 'ZWL', 'Zimbabwe Dollar', 38172, '-20.00000000', '30.00000000', 'Zimbabwean', '263', 17073087, 'Africa', 'Eastern Africa');
-

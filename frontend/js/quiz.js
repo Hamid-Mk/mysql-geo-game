@@ -1,381 +1,232 @@
-// =============================================================================
-// quiz.js  —  SQL Atlas  |  Quiz Page Logic (Gamified)
-// =============================================================================
-
-const TOTAL_CHALLENGES = 100;
-const HINT_AFTER_ATTEMPTS = 2;
-
-// Gamification State
-let currentChallengeId = 1;
-let failedAttempts = 0;
+let student = ensureStudent();
+let currentLevel = LEVELS[getParam("level")] ? getParam("level") : student.currentLevel || "Beginner";
+let allChallenges = [];
+let levelChallenges = [];
+let currentIndex = 0;
 let currentChallenge = null;
-let xp = 0;
-let soundEnabled = true;
+let hintUsedForChallenge = false;
 
-// DOM References
-const elEditor          = document.getElementById("sql-editor");
-const elQuestionText    = document.getElementById("question-text");
-const elChallengeNum    = document.getElementById("challenge-number");
-const elChallengeCat    = document.getElementById("challenge-category");
-const elProgressFill    = document.getElementById("progress-fill");
-const elProgressLabel   = document.getElementById("progress-label");
-const elDifficultyBadge = document.getElementById("difficulty-badge");
-const elHintBox         = document.getElementById("hint-box");
-const elHintText        = document.getElementById("hint-text");
-const elErrorBox        = document.getElementById("error-box");
-const elErrorText       = document.getElementById("error-text");
-const elResultsContainer= document.getElementById("results-container");
-const elResultsThead    = document.getElementById("results-thead");
-const elResultsTbody    = document.getElementById("results-tbody");
-const elResultsCount    = document.getElementById("results-count");
-const elBtnRun          = document.getElementById("btn-run");
-const elBtnClear        = document.getElementById("btn-clear");
-const elBtnHint         = document.getElementById("btn-hint");
-const elBtnPrev         = document.getElementById("btn-prev");
-const elBtnNext         = document.getElementById("btn-next");
-const elSuccessModal    = document.getElementById("success-modal");
-const elModalSubText    = document.getElementById("modal-sub-text");
-const elModalTitle      = document.getElementById("modal-title-text");
-const elModalEmoji      = document.getElementById("modal-emoji");
-const elBtnModalNext    = document.getElementById("btn-modal-next");
-const elBtnModalClose   = document.getElementById("btn-modal-close");
-const elXpTotal         = document.getElementById("xp-total");
-const elSoundToggle     = document.getElementById("btn-sound-toggle");
-const elBtnResultsNext  = document.getElementById("btn-results-next");
-const elBtnResultsRetry = document.getElementById("btn-results-retry");
-const elBtnErrorRetry   = document.getElementById("btn-error-retry");
+const els = {};
 
-// Audio setup
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-function playSound(type) {
-  if (!soundEnabled || !audioContext) return;
-  const osc = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-  osc.connect(gain);
-  gain.connect(audioContext.destination);
-  
-  if (type === 'success') {
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
-    osc.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
-    osc.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
-    gain.gain.setValueAtTime(0.1, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    osc.start();
-    osc.stop(audioContext.currentTime + 0.5);
-  } else if (type === 'error') {
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, audioContext.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
-    gain.gain.setValueAtTime(0.1, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-    osc.start();
-    osc.stop(audioContext.currentTime + 0.2);
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// INIT
-// ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  currentChallengeId = parseInt(getParam("id")) || 1;
-  loadChallenge(currentChallengeId);
+  [
+    "level-chip", "xp-chip", "streak-chip", "mistake-chip", "hint-chip", "side-xp", "side-streak",
+    "side-best-streak", "side-hints", "side-mistakes", "player-name", "challenge-category",
+    "challenge-number", "question-text", "progress-label", "progress-fill", "sql-editor",
+    "btn-hint", "btn-clear", "btn-run", "hint-box", "results-container", "results-count",
+    "results-thead", "results-tbody", "feedback-drawer", "feedback-title", "feedback-text",
+    "feedback-action"
+  ].forEach((id) => els[id] = document.getElementById(id));
 
-  elBtnRun.addEventListener("click", runQuery);
-  elBtnClear.addEventListener("click", clearEditor);
-  elBtnHint.addEventListener("click", showHint);
-  elBtnPrev.addEventListener("click", goPrev);
-  elBtnNext.addEventListener("click", goNext);
-  elBtnModalNext.addEventListener("click", () => { hideModal(); goNext(); });
-  elBtnModalClose.addEventListener("click", hideModal);
-  
-  if (elBtnResultsNext) elBtnResultsNext.addEventListener("click", goNext);
-  if (elBtnResultsRetry) elBtnResultsRetry.addEventListener("click", () => {
-    // Hide the results table and scroll panel back to the editor
-    elResultsContainer.style.display = "none";
-    const panel = document.querySelector('.panel-editor');
-    if (panel) panel.scrollTop = 0;
-    elEditor.focus();
-  });
-  if (elBtnErrorRetry) elBtnErrorRetry.addEventListener("click", () => {
-    // Hide the error drawer and scroll panel back to the editor
-    resetFeedback();
-    elResultsContainer.style.display = "none";
-    const panel = document.querySelector('.panel-editor');
-    if (panel) panel.scrollTop = 0;
-    elEditor.focus();
-  });
-  
-  elSoundToggle.addEventListener("click", () => {
-    soundEnabled = !soundEnabled;
-    elSoundToggle.textContent = soundEnabled ? "🔊" : "🔇";
-    if(soundEnabled && audioContext.state === 'suspended') {
-      audioContext.resume();
-    }
-  });
-
-  elEditor.addEventListener("keydown", (e) => {
-    if (e.ctrlKey && e.key === "Enter") runQuery();
-  });
-
-  // After intro animations finish, lock opacity to 1 so no future
-  // animation class (like shake) can accidentally reset them to invisible
-  setTimeout(() => {
-    document.querySelectorAll('.fade-in-up, .fade-in-left, .pop-in, .slide-down').forEach(el => {
-      el.style.opacity = '1';
-    });
-  }, 1000);
+  renderStudentHeader();
+  bindEvents();
+  bootPractice();
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TYPEWRITER EFFECT
-// ─────────────────────────────────────────────────────────────────────────────
-function typeWriter(element, text, speed = 15) {
-  element.innerHTML = '';
-  let i = 0;
-  function type() {
-    if (i < text.length) {
-      element.innerHTML += text.charAt(i);
-      i++;
-      setTimeout(type, speed);
-    }
-  }
-  type();
+function bindEvents() {
+  els["btn-run"].addEventListener("click", runQuery);
+  els["btn-clear"].addEventListener("click", () => {
+    els["sql-editor"].value = "";
+    els["sql-editor"].focus();
+  });
+  els["btn-hint"].addEventListener("click", useHint);
+  els["feedback-action"].addEventListener("click", () => {
+    hideFeedback();
+    if (els["feedback-action"].dataset.next === "true") goNext();
+  });
+  els["sql-editor"].addEventListener("keydown", (event) => {
+    if (event.ctrlKey && event.key === "Enter") runQuery();
+  });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// LOAD CHALLENGE
-// ─────────────────────────────────────────────────────────────────────────────
-async function loadChallenge(id) {
-  resetFeedback();
-  failedAttempts = 0;
-  elEditor.value = "";
-  elHintBox.style.display = "none";
-  elResultsContainer.style.display = "none";
-
-  const pct = Math.round((id / TOTAL_CHALLENGES) * 100);
-  elProgressFill.style.width = `${pct}%`;
-  elProgressLabel.textContent = `Quest ${id} of ${TOTAL_CHALLENGES}`;
-  elChallengeNum.textContent = `Q.${id}`;
-
-  elBtnPrev.disabled = id <= 1;
-  elBtnNext.disabled = id >= TOTAL_CHALLENGES;
-
-  elQuestionText.textContent = "Summoning quest...";
+async function bootPractice() {
+  student.currentLevel = currentLevel;
+  student.hintsByLevel[currentLevel] ??= LEVELS[currentLevel].hints;
+  student = saveStudent(student);
   try {
-    currentChallenge = await api(`/challenges/${id}`);
-  } catch (e) {
-    elQuestionText.textContent = "Failed to load quest. Is the magic server running?";
+    allChallenges = await api("/challenges");
+  } catch (err) {
+    showFeedback("incorrect", "Server offline", err.message, false);
     return;
   }
-
-  typeWriter(elQuestionText, currentChallenge.question_text);
-  
-  if(elChallengeCat && currentChallenge.category) {
-    elChallengeCat.textContent = currentChallenge.category;
+  levelChallenges = allChallenges.filter((challenge) => levelFromChallenge(challenge) === currentLevel);
+  if (!levelChallenges.length) {
+    showFeedback("incorrect", "No questions found", `${currentLevel} has no questions in the database yet.`, false);
+    return;
   }
-
-  const diff = currentChallenge.difficulty || "easy";
-  elDifficultyBadge.textContent = diff.charAt(0).toUpperCase() + diff.slice(1);
-  elDifficultyBadge.className = `diff-badge ${difficultyClass(diff)}`;
-
-  const questionCard = document.querySelector('.question-card');
-  if (questionCard) {
-    questionCard.classList.remove('is-easy','is-medium','is-hard');
-    questionCard.classList.add(`is-${diff}`);
-  }
-
-  document.title = `SQL Atlas — Quest ${id}`;
-  history.replaceState(null, "", `quiz.html?id=${id}`);
+  currentIndex = Math.min(student.currentChallengeByLevel[currentLevel] || 0, levelChallenges.length - 1);
+  loadCurrentChallenge();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RUN QUERY
-// ─────────────────────────────────────────────────────────────────────────────
+function loadCurrentChallenge() {
+  hideFeedback();
+  hintUsedForChallenge = false;
+  currentChallenge = levelChallenges[currentIndex];
+  els["sql-editor"].value = "";
+  els["hint-box"].hidden = true;
+  els["hint-box"].textContent = "";
+  els["results-container"].hidden = true;
+  els["challenge-category"].textContent = currentChallenge.category || currentLevel;
+  els["challenge-number"].textContent = `Question ${currentIndex + 1} / ${levelChallenges.length}`;
+  els["question-text"].textContent = currentChallenge.question_text;
+  document.title = `SQL Atlas — ${currentLevel} ${currentIndex + 1}`;
+  history.replaceState(null, "", `quiz.html?level=${encodeURIComponent(currentLevel)}`);
+  renderStats();
+}
+
+function renderStats() {
+  student = normalizeStudent(student);
+  const completedInLevel = levelChallenges.filter((challenge) => student.completedChallengeIds.includes(challenge.id)).length;
+  const pct = levelChallenges.length ? Math.round((completedInLevel / levelChallenges.length) * 100) : 0;
+  els["level-chip"].textContent = currentLevel;
+  els["xp-chip"].textContent = `${student.totalXP.toLocaleString()} XP`;
+  els["streak-chip"].textContent = `Streak ${student.currentStreak}`;
+  els["mistake-chip"].textContent = `Mistakes ${student.mistakeStreak}/3`;
+  els["hint-chip"].textContent = `Hints ${student.hintsByLevel[currentLevel]}`;
+  els["player-name"].textContent = student.name;
+  els["side-xp"].textContent = student.totalXP.toLocaleString();
+  els["side-streak"].textContent = student.currentStreak;
+  els["side-best-streak"].textContent = student.bestStreakByLevel[currentLevel] || 0;
+  els["side-hints"].textContent = student.hintsByLevel[currentLevel];
+  els["side-mistakes"].textContent = `${student.mistakeStreak} / 3`;
+  els["progress-label"].textContent = `${completedInLevel} / ${levelChallenges.length} complete`;
+  els["progress-fill"].style.width = `${pct}%`;
+  els["btn-hint"].disabled = student.hintsByLevel[currentLevel] <= 0 || hintUsedForChallenge;
+}
+
 async function runQuery() {
-  const sql = elEditor.value.trim();
-  if (!sql) {
-    showError("Your scroll is empty. Write a query first.");
+  const query = els["sql-editor"].value.trim();
+  if (!query) {
+    showFeedback("incorrect", "Terminal empty", "Write a SELECT query before checking your answer.", false);
     return;
   }
 
-  elBtnRun.disabled = true;
-  elBtnRun.innerHTML = "⏳ Casting...";
-  resetFeedback();
-
+  els["btn-run"].disabled = true;
+  els["btn-run"].textContent = "Running...";
   let data;
   try {
-    data = await api("/execute-query", "POST", { query: sql, challenge_id: currentChallengeId });
-  } catch (e) {
-    showError(e.message);
-    elBtnRun.disabled = false;
-    elBtnRun.innerHTML = "⚡ Execute";
+    data = await api("/execute-query", "POST", { query, challenge_id: currentChallenge.id });
+  } catch (err) {
+    handleWrong(err.message);
+    finishRunButton();
     return;
   }
-
-  elBtnRun.disabled = false;
-  elBtnRun.innerHTML = "⚡ Execute";
+  finishRunButton();
 
   if (!data.success) {
-    triggerShake();
-    playSound('error');
-    showError(data.error);
-    failedAttempts++;
-    if (failedAttempts >= HINT_AFTER_ATTEMPTS) showHintBox();
+    handleWrong(data.error || "The database rejected that query.");
     return;
   }
 
   renderResults(data.columns, data.rows, data.row_count);
+  if (data.is_correct) handleCorrect(data.row_count);
+  else handleWrong("The query ran, but the result does not match this question yet.");
+}
 
-  if (data.is_correct) {
-    playSound('success');
-    fireConfetti();
-    
-    // Calculate XP
-    let gainedXp = currentChallenge.difficulty === 'hard' ? 200 : (currentChallenge.difficulty === 'medium' ? 150 : 100);
-    if(failedAttempts > 0) gainedXp = Math.floor(gainedXp * 0.8);
-    xp += gainedXp;
-    elXpTotal.textContent = xp.toLocaleString();
+function finishRunButton() {
+  els["btn-run"].disabled = false;
+  els["btn-run"].textContent = "Run Query";
+}
 
-    const xpEl = document.querySelector('.xp-counter');
-    if (xpEl) {
-      xpEl.classList.remove('xp-bump');
-      void xpEl.offsetWidth;
-      xpEl.classList.add('xp-bump');
-      setTimeout(() => xpEl.classList.remove('xp-bump'), 500);
-    }
+function handleCorrect(rowCount) {
+  const alreadyComplete = student.completedChallengeIds.includes(currentChallenge.id);
+  const baseReward = LEVELS[currentLevel].reward;
+  const reward = alreadyComplete ? 0 : Math.max(20, baseReward - (hintUsedForChallenge ? 30 : 0));
+  if (!alreadyComplete) student.completedChallengeIds.push(currentChallenge.id);
+  student.totalXP += reward;
+  student.currentStreak += 1;
+  student.mistakeStreak = 0;
+  student.bestStreakByLevel[currentLevel] = Math.max(student.bestStreakByLevel[currentLevel] || 0, student.currentStreak);
+  student.currentChallengeByLevel[currentLevel] = Math.min(currentIndex + 1, levelChallenges.length - 1);
+  student = saveStudent(student);
+  renderStats();
+  const text = reward > 0
+    ? `Correct. You returned ${rowCount} rows and earned ${reward} XP.`
+    : `Correct. You already completed this one, so no extra XP was awarded.`;
+  triggerPageFeedback("correct");
+  showFeedback("correct", "Query accepted", text, currentIndex < levelChallenges.length - 1);
+}
 
-    const messages = ["Legendary!", "Flawless Execution!", "Database Master!", "Query Accepted!"];
-    const msg = messages[Math.floor(Math.random() * messages.length)];
-    
-    showModal(msg, `+${gainedXp} XP gained. You returned ${data.row_count} rows.`);
+function handleWrong(message) {
+  student.mistakeStreak += 1;
+  if (student.mistakeStreak >= 3) {
+    student.currentStreak = 0;
+    student.mistakeStreak = 0;
+    currentIndex = firstUnfinishedIndex();
+    student.currentChallengeByLevel[currentLevel] = currentIndex;
+    student.hintsByLevel[currentLevel] = LEVELS[currentLevel].hints;
+    student = saveStudent(student);
+    renderStats();
+    triggerPageFeedback("wrong");
+    showFeedback("incorrect", "Streak reset", "Three mistakes in a row reset your streak. This level has restarted with fresh hints.", false);
+    setTimeout(loadCurrentChallenge, 1400);
+    return;
+  }
+  student = saveStudent(student);
+  renderStats();
+  triggerPageFeedback("wrong");
+  showFeedback("incorrect", "Not yet", message, false);
+}
+
+function useHint() {
+  if (student.hintsByLevel[currentLevel] <= 0 || hintUsedForChallenge) return;
+  student.hintsByLevel[currentLevel] -= 1;
+  hintUsedForChallenge = true;
+  student = saveStudent(student);
+  els["hint-box"].hidden = false;
+  els["hint-box"].textContent = currentChallenge.hint || "Read the question carefully and compare it with the schema guide.";
+  renderStats();
+  triggerPageFeedback("hint");
+  showFeedback("hint", "Hint used", "This question reward will be reduced, but you have a clearer path now.", false);
+}
+
+function goNext() {
+  if (currentIndex < levelChallenges.length - 1) {
+    currentIndex += 1;
+    student.currentChallengeByLevel[currentLevel] = currentIndex;
+    student = saveStudent(student);
+    loadCurrentChallenge();
   } else {
-    triggerShake();
-    playSound('error');
-    showError("The spell executed, but the results don't match the prophecy. Try again.");
-    failedAttempts++;
-    if (failedAttempts >= HINT_AFTER_ATTEMPTS) showHintBox();
+    showFeedback("correct", "Level complete", `${currentLevel} is complete. Choose another level from the dashboard.`, false);
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GAMIFIED EFFECTS
-// ─────────────────────────────────────────────────────────────────────────────
-function triggerShake() {
-  const container = document.getElementById('editor-container');
-  container.classList.remove('shake');
-  void container.offsetWidth; // trigger reflow
-  container.classList.add('shake');
-  // Remove the shake class after animation ends so it doesn't conflict
-  // with the fade-in-up animation's opacity: 0 base state
-  container.addEventListener('animationend', function handler() {
-    container.classList.remove('shake');
-    container.style.opacity = '1';
-    container.removeEventListener('animationend', handler);
-  });
+function firstUnfinishedIndex() {
+  const index = levelChallenges.findIndex((challenge) => !student.completedChallengeIds.includes(challenge.id));
+  return index === -1 ? 0 : index;
 }
 
-function fireConfetti() {
-  const count = 200;
-  const defaults = { origin: { y: 0.7 }, zIndex: 1100 };
-
-  function fire(particleRatio, opts) {
-    confetti(Object.assign({}, defaults, opts, {
-      particleCount: Math.floor(count * particleRatio)
-    }));
-  }
-
-  fire(0.25, { spread: 26, startVelocity: 55 });
-  fire(0.2, { spread: 60 });
-  fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
-  fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-  fire(0.1, { spread: 120, startVelocity: 45 });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// RENDER RESULTS
-// ─────────────────────────────────────────────────────────────────────────────
-function renderResults(columns, rows, count) {
-  const tr = document.createElement("tr");
-  columns.forEach(col => {
+function renderResults(columns = [], rows = [], count = 0) {
+  const headRow = document.createElement("tr");
+  columns.forEach((column) => {
     const th = document.createElement("th");
-    th.textContent = col;
-    tr.appendChild(th);
+    th.textContent = column;
+    headRow.appendChild(th);
   });
-  elResultsThead.innerHTML = "";
-  elResultsThead.appendChild(tr);
-
-  elResultsTbody.innerHTML = "";
-  rows.forEach(row => {
+  els["results-thead"].innerHTML = "";
+  els["results-thead"].appendChild(headRow);
+  els["results-tbody"].innerHTML = "";
+  rows.slice(0, 100).forEach((row) => {
     const tr = document.createElement("tr");
-    row.forEach(cell => {
+    row.forEach((cell) => {
       const td = document.createElement("td");
       td.textContent = cell ?? "NULL";
       tr.appendChild(td);
     });
-    elResultsTbody.appendChild(tr);
+    els["results-tbody"].appendChild(tr);
   });
-
-  elResultsCount.textContent = `${count} rows`;
-  elResultsContainer.style.display = "block";
+  els["results-count"].textContent = `${count} rows${count > 100 ? " shown as first 100" : ""}`;
+  els["results-container"].hidden = false;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
-function showError(message) {
-  elErrorText.textContent = message;
-  elErrorBox.classList.add("is-visible");
+function showFeedback(type, title, text, canContinue) {
+  els["feedback-drawer"].className = `feedback-drawer is-visible ${type}`;
+  els["feedback-title"].textContent = title;
+  els["feedback-text"].textContent = text;
+  els["feedback-action"].textContent = canContinue ? "Next Question" : "Continue";
+  els["feedback-action"].dataset.next = canContinue ? "true" : "false";
 }
 
-function resetFeedback() {
-  elErrorBox.classList.remove("is-visible");
-}
-
-function showHintBox() {
-  elBtnHint.classList.add('pulse-glow');
-}
-
-function showHint() {
-  if (currentChallenge && currentChallenge.hint) {
-    elHintBox.style.display = "flex";
-    typeWriter(elHintText, currentChallenge.hint);
-    elBtnHint.classList.remove('pulse-glow');
-  } else {
-    elHintBox.style.display = "flex";
-    elHintText.textContent = "No hint available for this quest.";
-  }
-}
-
-function clearEditor() {
-  elEditor.value = "";
-  elEditor.focus();
-}
-
-function showModal(title, subText) {
-  elModalTitle.textContent = title;
-  elModalSubText.textContent = subText;
-  
-  const emojis = ["🏆", "🌟", "🔥", "⚡", "💎"];
-  elModalEmoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-  
-  elSuccessModal.style.display = "flex";
-}
-
-function hideModal() {
-  elSuccessModal.style.display = "none";
-}
-
-function goPrev() {
-  if (currentChallengeId > 1) {
-    currentChallengeId--;
-    loadChallenge(currentChallengeId);
-  }
-}
-
-function goNext() {
-  if (currentChallengeId < TOTAL_CHALLENGES) {
-    currentChallengeId++;
-    loadChallenge(currentChallengeId);
-  }
+function hideFeedback() {
+  els["feedback-drawer"].classList.remove("is-visible");
 }
