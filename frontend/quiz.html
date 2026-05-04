@@ -139,7 +139,7 @@
       </div>
 
       <!-- Feedback / Error Drawer (Duolingo Style) -->
-      <div id="error-box" class="error-drawer slide-up" style="display:none;">
+      <div id="error-box" class="error-drawer" style="display:block;">
         <div class="error-drawer-content">
           <div class="error-drawer-left">
             <div class="error-icon-large drop-bounce">❌</div>
@@ -164,12 +164,12 @@
             <tbody id="results-tbody"></tbody>
           </table>
         </div>
-        <div style="display: flex; gap: 1rem; margin-top: 1rem; width: 100%;">
-          <button id="btn-results-retry" class="btn-ghost-glow" style="display:none; flex: 1; font-size: 1.2rem; padding: 1rem;">
-            Keep Practicing
+        <div class="results-actions-bar">
+          <button id="btn-results-retry" class="btn-ghost-glow" style="flex: 1; font-size: 1.1rem; padding: 0.8rem;">
+            ✏️ Back to Editor
           </button>
-          <button id="btn-results-next" class="btn-primary" style="display:none; flex: 2; font-size: 1.2rem; padding: 1rem;">
-            Excellent! Go to Next Quest ➔
+          <button id="btn-results-next" class="btn-primary" style="flex: 2; font-size: 1.1rem; padding: 0.8rem;">
+            Excellent! Next Quest ➔
           </button>
         </div>
       </div>
