@@ -91,15 +91,19 @@ document.addEventListener("DOMContentLoaded", () => {
   
   if (elBtnResultsNext) elBtnResultsNext.addEventListener("click", goNext);
   if (elBtnResultsRetry) elBtnResultsRetry.addEventListener("click", () => {
+    // Hide the results table and scroll panel back to the editor
+    elResultsContainer.style.display = "none";
+    const panel = document.querySelector('.panel-editor');
+    if (panel) panel.scrollTop = 0;
     elEditor.focus();
-    elEditor.parentElement.style.boxShadow = "0 0 0 4px var(--primary)";
-    setTimeout(() => elEditor.parentElement.style.boxShadow = "var(--shadow-lg)", 700);
   });
   if (elBtnErrorRetry) elBtnErrorRetry.addEventListener("click", () => {
+    // Hide the error drawer and scroll panel back to the editor
     resetFeedback();
+    elResultsContainer.style.display = "none";
+    const panel = document.querySelector('.panel-editor');
+    if (panel) panel.scrollTop = 0;
     elEditor.focus();
-    elEditor.parentElement.style.boxShadow = "0 0 0 4px var(--error)";
-    setTimeout(() => elEditor.parentElement.style.boxShadow = "var(--shadow-lg)", 700);
   });
   
   elSoundToggle.addEventListener("click", () => {
@@ -113,6 +117,14 @@ document.addEventListener("DOMContentLoaded", () => {
   elEditor.addEventListener("keydown", (e) => {
     if (e.ctrlKey && e.key === "Enter") runQuery();
   });
+
+  // After intro animations finish, lock opacity to 1 so no future
+  // animation class (like shake) can accidentally reset them to invisible
+  setTimeout(() => {
+    document.querySelectorAll('.fade-in-up, .fade-in-left, .pop-in, .slide-down').forEach(el => {
+      el.style.opacity = '1';
+    });
+  }, 1000);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -140,8 +152,6 @@ async function loadChallenge(id) {
   elEditor.value = "";
   elHintBox.style.display = "none";
   elResultsContainer.style.display = "none";
-  if (elBtnResultsNext) elBtnResultsNext.style.display = "none";
-  if (elBtnResultsRetry) elBtnResultsRetry.style.display = "none";
 
   const pct = Math.round((id / TOTAL_CHALLENGES) * 100);
   elProgressFill.style.width = `${pct}%`;
@@ -218,15 +228,6 @@ async function runQuery() {
   renderResults(data.columns, data.rows, data.row_count);
 
   if (data.is_correct) {
-    if (elBtnResultsNext) elBtnResultsNext.style.display = "block";
-    if (elBtnResultsRetry) elBtnResultsRetry.style.display = "block";
-    
-    // Auto-scroll the panel editor to the bottom so the buttons are guaranteed to be visible
-    setTimeout(() => {
-      const panel = document.querySelector('.panel-editor');
-      if (panel) panel.scrollTop = panel.scrollHeight;
-    }, 100);
-    
     playSound('success');
     fireConfetti();
     
@@ -265,6 +266,13 @@ function triggerShake() {
   container.classList.remove('shake');
   void container.offsetWidth; // trigger reflow
   container.classList.add('shake');
+  // Remove the shake class after animation ends so it doesn't conflict
+  // with the fade-in-up animation's opacity: 0 base state
+  container.addEventListener('animationend', function handler() {
+    container.classList.remove('shake');
+    container.style.opacity = '1';
+    container.removeEventListener('animationend', handler);
+  });
 }
 
 function fireConfetti() {
@@ -315,30 +323,13 @@ function renderResults(columns, rows, count) {
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
-let feedbackTimeout = null;
-
 function showError(message) {
-  if (feedbackTimeout) {
-    clearTimeout(feedbackTimeout);
-    feedbackTimeout = null;
-  }
-  elErrorBox.classList.remove("slide-down");
-  elErrorBox.classList.add("slide-up");
-  elErrorBox.style.display = "flex";
   elErrorText.textContent = message;
+  elErrorBox.classList.add("is-visible");
 }
 
 function resetFeedback() {
-  if (feedbackTimeout) {
-    clearTimeout(feedbackTimeout);
-    feedbackTimeout = null;
-  }
-  elErrorBox.classList.remove("slide-up");
-  elErrorBox.classList.add("slide-down");
-  feedbackTimeout = setTimeout(() => {
-    elErrorBox.style.display = "none";
-    elErrorBox.classList.remove("slide-down");
-  }, 300);
+  elErrorBox.classList.remove("is-visible");
 }
 
 function showHintBox() {
