@@ -1,195 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SQL Atlas — Quest Board</title>
-  <link rel="stylesheet" href="css/style.css"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
-  <!-- Canvas Confetti for success celebrations -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL Atlas — Practice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="page-quiz">
-
-  <div id="tsparticles" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1;"></div>
-
-  <header class="glass-header">
-    <div class="header-inner">
-      <a href="index.html" class="logo">
-        <span class="logo-icon">🌍</span>
-        <span class="logo-text">SQL Atlas</span>
-      </a>
-      
-      <!-- Progress & XP -->
-      <div class="header-center">
-        <div class="xp-counter" title="Experience Points">
-          <span class="xp-icon">💎</span>
-          <span id="xp-total">0</span> XP
-        </div>
-        <div class="progress-bar-wrapper">
-          <span id="progress-label" class="progress-label">Quest 1 / 100</span>
-          <div class="progress-track">
-            <div id="progress-fill" class="progress-fill glow-fill" style="width: 1%"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="header-right">
-        <button id="btn-sound-toggle" class="btn-icon" title="Toggle Sound">🔊</button>
-        <span id="difficulty-badge" class="diff-badge easy">Easy</span>
-        <a href="admin_teacher.html" class="nav-link btn-ghost-glow">Teacher</a>
-      </div>
+  <div class="space-grid" aria-hidden="true"></div>
+  <header class="app-header quiz-header">
+    <a class="brand-lockup" href="index.html">
+      <img src="assets/sql-atlas-logo.svg" alt="" class="brand-mark">
+      <span class="brand-text">SQL Atlas</span>
+    </a>
+    <div class="quiz-top-stats">
+      <span id="level-chip" class="status-chip">Beginner</span>
+      <span id="xp-chip" class="status-chip">0 XP</span>
+      <span id="streak-chip" class="status-chip">Streak 0</span>
+      <span id="mistake-chip" class="status-chip danger">Mistakes 0/3</span>
+      <span id="hint-chip" class="status-chip hint">Hints 0</span>
     </div>
+    <nav class="header-actions">
+      <span id="student-status" class="student-status"></span>
+    </nav>
   </header>
 
-  <div class="quiz-layout">
-    <!-- LEFT PANEL: Database Reference -->
-    <aside class="panel panel-reference glass-panel fade-in-left">
-      <h2 class="panel-title text-gradient">📋 Tome of Knowledge</h2>
-      
-      <div class="table-reference custom-scrollbar">
-        <h3 class="ref-subtitle">World Schema</h3>
-        
-        <details class="ref-table" open>
-          <summary><strong>countries</strong></summary>
-          <ul>
-            <li><code>id</code> (PK)</li>
-            <li><code>name</code></li>
-            <li><code>capital</code></li>
-            <li><code>currency_name</code></li>
-            <li><code>population</code></li>
-            <li><code>gdp</code></li>
-            <li><code>region</code></li>
-            <li><code>subregion</code></li>
-          </ul>
-        </details>
-
-        <details class="ref-table">
-          <summary><strong>states</strong></summary>
-          <ul>
-            <li><code>id</code> (PK)</li>
-            <li><code>name</code></li>
-            <li><code>country_id</code> (FK)</li>
-            <li><code>country_name</code></li>
-            <li><code>population</code></li>
-          </ul>
-        </details>
-
-        <details class="ref-table">
-          <summary><strong>cities</strong></summary>
-          <ul>
-            <li><code>id</code> (PK)</li>
-            <li><code>name</code></li>
-            <li><code>country_id</code> (FK)</li>
-            <li><code>state_id</code> (FK)</li>
-            <li><code>population</code></li>
-          </ul>
-        </details>
+  <main class="mission-layout">
+    <aside class="schema-panel">
+      <div class="panel-heading">
+        <span class="console-label">Schema Guide</span>
+        <strong>Database Schema</strong>
       </div>
+      <details open>
+        <summary>countries</summary>
+        <code>id</code><code>name</code><code>iso2</code><code>iso3</code><code>capital</code><code>currency</code><code>currency_name</code><code>gdp</code><code>latitude</code><code>longitude</code><code>nationality</code><code>phonecode</code><code>population</code><code>region</code><code>subregion</code>
+      </details>
+      <details>
+        <summary>states</summary>
+        <code>id</code><code>name</code><code>country_id</code><code>country_code</code><code>country_name</code><code>latitude</code><code>longitude</code><code>population</code><code>type</code>
+      </details>
+      <details>
+        <summary>cities</summary>
+        <code>id</code><code>name</code><code>country_id</code><code>country_code</code><code>country_name</code><code>latitude</code><code>longitude</code><code>population</code><code>state_id</code><code>state_code</code><code>state_name</code>
+      </details>
     </aside>
 
-    <!-- CENTER PANEL: Editor & Results -->
-    <main class="panel panel-editor">
-      <!-- Question Card -->
-      <div class="question-card glass-panel fade-in-up">
-        <div class="question-header">
-          <span id="challenge-category" class="challenge-category">Absolute Beginner</span>
-          <span id="challenge-number" class="challenge-num">Q.1</span>
+    <section class="mission-main">
+      <div class="mission-card">
+        <div class="mission-meta">
+          <span id="challenge-category">Loading</span>
+          <span id="challenge-number">Practice 1</span>
         </div>
-        <p id="question-text" class="question-text type-effect">
-          Loading quest...
-        </p>
-        <!-- Hint Box -->
-        <div id="hint-box" class="hint-box" style="display:none;">
-          <span class="hint-icon">💡</span>
-          <span id="hint-text" class="type-effect"></span>
+        <h1 id="question-text">Loading question...</h1>
+        <div class="mission-progress">
+          <span id="progress-label">0 / 0</span>
+          <div class="progress-track"><span id="progress-fill"></span></div>
         </div>
       </div>
 
-      <!-- SQL Editor -->
-      <div class="editor-wrapper fade-in-up delay-1" id="editor-container">
-        <div class="editor-toolbar">
-          <span class="editor-label">SQL Terminal</span>
-          <span class="editor-shortcut">Ctrl + Enter to run</span>
+      <div class="terminal-panel">
+        <div class="terminal-toolbar">
+          <span>SQL Terminal</span>
+          <span>Ctrl + Enter</span>
         </div>
-        <textarea
-          id="sql-editor"
-          class="sql-editor custom-scrollbar"
-          spellcheck="false"
-          placeholder="-- Write your spell (query) here...&#10;SELECT * FROM countries LIMIT 5;"
-          rows="7"
-        ></textarea>
-        
-        <div class="editor-actions">
-          <div class="actions-left">
-            <button id="btn-hint" class="btn-ghost-glow hint-btn">
-              <span class="icon">💡</span> Reveal Hint
-            </button>
-            <button id="btn-clear" class="btn-ghost-glow text-muted">Clear</button>
-          </div>
-          <div class="actions-right">
-            <button id="btn-prev" class="btn-ghost-glow btn-nav" disabled>← Prev</button>
-            <button id="btn-next" class="btn-ghost-glow btn-nav" disabled>Next →</button>
-            <button id="btn-run" class="btn-primary btn-run">
-              ⚡ Execute
-            </button>
-          </div>
+        <textarea id="sql-editor" spellcheck="false" autocomplete="off" placeholder="SELECT name, population FROM countries ORDER BY population DESC LIMIT 5;"></textarea>
+        <div id="hint-box" class="hint-box" hidden></div>
+        <div class="terminal-actions">
+          <button id="btn-hint" class="secondary-button" type="button">Use Hint</button>
+          <button id="btn-clear" class="secondary-button" type="button">Clear</button>
+          <button id="btn-run" class="mission-button" type="button">Run Query</button>
         </div>
       </div>
 
-      <!-- Feedback / Error Drawer (Duolingo Style) -->
-      <div id="error-box" class="error-drawer" style="display:block;">
-        <div class="error-drawer-content">
-          <div class="error-drawer-left">
-            <div class="error-icon-large drop-bounce">❌</div>
-            <div class="error-text-content">
-              <h3 class="error-drawer-title">Incorrect!</h3>
-              <p id="error-text"></p>
-            </div>
-          </div>
-          <button id="btn-error-retry" class="btn-error-action">Try Again</button>
-        </div>
-      </div>
-
-      <!-- Results Table -->
-      <div id="results-container" class="results-container glass-panel slide-down" style="display:none;">
+      <section id="results-container" class="results-panel" hidden>
         <div class="results-header">
-          <span class="results-title">Data Crystal (Results)</span>
-          <span id="results-count" class="results-count badge-dark"></span>
+          <strong>Query Output</strong>
+          <span id="results-count">0 rows</span>
         </div>
-        <div class="results-scroll custom-scrollbar" style="overflow-x: auto;">
-          <table id="results-table" class="results-table">
+        <div class="table-scroll">
+          <table id="results-table">
             <thead id="results-thead"></thead>
             <tbody id="results-tbody"></tbody>
           </table>
         </div>
-        <div class="results-actions-bar">
-          <button id="btn-results-retry" class="btn-ghost-glow" style="flex: 1; font-size: 1.1rem; padding: 0.8rem;">
-            ✏️ Back to Editor
-          </button>
-          <button id="btn-results-next" class="btn-primary" style="flex: 2; font-size: 1.1rem; padding: 0.8rem;">
-            Excellent! Next Quest ➔
-          </button>
-        </div>
-      </div>
-    </main>
-  </div>
+      </section>
+    </section>
 
-  <!-- SUCCESS MODAL overlay -->
-  <div id="success-modal" class="modal-overlay" style="display:none;">
-    <div class="modal-card pop-in">
-      <div class="modal-icon drop-bounce" id="modal-emoji">🏆</div>
-      <h2 class="modal-title text-gradient" id="modal-title-text">Quest Complete!</h2>
-      <p class="modal-sub" id="modal-sub-text">+100 XP gained.</p>
-      <div class="modal-actions">
-        <button id="btn-modal-next" class="btn-primary btn-full">Next Quest ➔</button>
-        <button id="btn-modal-close" class="btn-ghost-glow btn-full">View Result</button>
+    <aside class="player-panel">
+      <div class="panel-heading">
+        <span class="console-label">Practice Stats</span>
+        <strong id="player-name">Guest explorer</strong>
       </div>
+      <div class="stat-stack">
+        <div><span>XP</span><strong id="side-xp">0</strong></div>
+        <div><span>Current streak</span><strong id="side-streak">0</strong></div>
+        <div><span>Best level streak</span><strong id="side-best-streak">0</strong></div>
+        <div><span>Hints remaining</span><strong id="side-hints">0</strong></div>
+        <div><span>Mistakes</span><strong id="side-mistakes">0 / 3</strong></div>
+      </div>
+      <a class="secondary-button full-width" href="index.html">Back to Levels</a>
+    </aside>
+  </main>
+
+  <div id="feedback-drawer" class="feedback-drawer" role="status" aria-live="polite">
+    <div>
+      <strong id="feedback-title">Feedback</strong>
+      <p id="feedback-text"></p>
     </div>
+    <button id="feedback-action" type="button">Continue</button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
   <script src="js/app.js"></script>
   <script src="js/quiz.js"></script>
 </body>

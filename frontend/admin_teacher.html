@@ -1,141 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SQL Atlas — Teacher Portal</title>
-  <link rel="stylesheet" href="css/style.css"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="page-admin">
-
-  <div id="tsparticles" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1;"></div>
-
-  <header class="glass-header">
-    <div class="header-inner">
-      <a href="index.html" class="logo">
-        <span class="logo-icon">🌍</span>
-        <span class="logo-text">SQL Atlas</span>
-      </a>
-      <span class="admin-badge">Teacher Portal</span>
-    </div>
+  <div class="space-grid admin-grid" aria-hidden="true"></div>
+  <header class="app-header admin-header">
+    <a class="brand-lockup" href="index.html">
+      <img src="assets/sql-atlas-logo.svg" alt="" class="brand-mark">
+      <span class="brand-text">SQL Atlas</span>
+    </a>
+    <nav class="header-actions">
+      <a class="nav-link" href="index.html">Student Dashboard</a>
+      <span class="teacher-badge">Teacher Portal</span>
+    </nav>
   </header>
 
-  <main class="admin-main">
-
-    <!-- LOGIN FORM -->
-    <section id="login-section" class="admin-card login-card fade-in-up">
-      <div class="login-icon drop-bounce">🔐</div>
-      <h1 class="admin-title text-gradient">Teacher Login</h1>
-      <p class="admin-sub">Enter the master passphrase to access the curriculum.</p>
-
-      <div class="form-group">
-        <label for="password-input" class="form-label">Passphrase</label>
-        <input
-          type="password"
-          id="password-input"
-          class="form-input"
-          placeholder="Enter teacher password"
-          autocomplete="current-password"
-        />
-        <span id="login-error" class="field-error text-error" style="display:none; color: var(--error); margin-top: 0.5rem; font-weight: bold; display: block;">
-          ❌ Incorrect password.
-        </span>
-      </div>
-
-      <button id="btn-login" class="btn-primary btn-full">Access Portal ➔</button>
-      <p class="login-hint text-muted" style="margin-top: 1rem;">
-        <small>Hint: The password is set in the backend <code>.env</code> file.</small>
-      </p>
+  <main class="admin-shell">
+    <section id="login-section" class="teacher-panel narrow">
+      <p class="eyebrow admin-eyebrow">Instructor access</p>
+      <h1>Teacher Portal</h1>
+      <p class="hero-copy">Create questions and review the SQL Atlas challenge library.</p>
+      <label for="password-input">Password</label>
+      <input id="password-input" type="password" autocomplete="current-password" placeholder="Teacher password">
+      <p id="login-error" class="field-error" hidden></p>
+      <button id="btn-login" class="teacher-button" type="button">Access Portal</button>
     </section>
 
-    <!-- DASHBOARD -->
-    <section id="dashboard-section" class="dashboard-section fade-in-up delay-1" style="display:none;">
-      <div class="admin-card" style="margin-bottom: 2rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h1 class="admin-title text-gradient" style="margin: 0;">Welcome, Teacher! 👋</h1>
-          <button id="btn-logout" class="btn-ghost-glow">Logout</button>
+    <section id="dashboard-section" class="teacher-dashboard" hidden>
+      <div class="teacher-toolbar">
+        <div>
+          <p class="eyebrow admin-eyebrow">Curriculum control</p>
+          <h1>Practice Builder</h1>
         </div>
+        <button id="btn-logout" class="secondary-button" type="button">Logout</button>
       </div>
 
       <div class="tab-bar">
-        <button class="tab-btn active" data-tab="add-challenge">➕ Create Quest</button>
-        <button class="tab-btn" data-tab="view-challenges">📋 View All Quests</button>
+        <button class="tab-btn active" data-tab="add-challenge" type="button">Create Practice</button>
+        <button class="tab-btn" data-tab="view-challenges" type="button">Practice Library</button>
       </div>
 
-      <!-- Tab: Add Challenge -->
-      <div id="tab-add-challenge" class="tab-panel admin-card">
-        <h2 class="admin-title text-gradient" style="font-size: 1.8rem;">Forge a New Quest</h2>
-
-        <div class="form-group">
-          <label for="input-question" class="form-label">Quest Objective *</label>
-          <textarea id="input-question" class="form-input form-textarea" rows="2" placeholder="e.g. Find all cities in Japan."></textarea>
+      <section id="tab-add-challenge" class="tab-panel teacher-panel">
+        <h2>Create a Question</h2>
+        <div class="form-grid">
+          <label>Level
+            <select id="input-level">
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+          </label>
+          <label>Difficulty
+            <select id="input-difficulty">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </label>
+          <label>Category
+            <select id="input-category">
+              <option value="Table Exploration">Table Exploration</option>
+              <option value="Sorting and Limiting">Sorting and Limiting</option>
+              <option value="Filtering">Filtering</option>
+              <option value="Scalar Functions">Scalar Functions</option>
+              <option value="Aggregate Functions">Aggregate Functions</option>
+              <option value="Joins">Joins</option>
+              <option value="Group By">Group By</option>
+              <option value="Subqueries">Subqueries</option>
+              <option value="Correlated Subqueries">Correlated Subqueries</option>
+            </select>
+          </label>
         </div>
-
-        <div class="form-group">
-          <label for="input-expected-sql" class="form-label">Expected SQL Solution *</label>
-          <textarea id="input-expected-sql" class="form-input form-textarea sql-editor custom-scrollbar" rows="3" placeholder="SELECT * FROM cities..."></textarea>
+        <label>Question text
+          <textarea id="input-question" rows="3" placeholder="Ask a clear, student-friendly SQL question."></textarea>
+        </label>
+        <label>Expected SQL solution
+          <textarea id="input-expected-sql" rows="5" class="code-input" placeholder="SELECT ..."></textarea>
+        </label>
+        <label>Hint
+          <input id="input-hint" type="text" placeholder="Give a useful nudge without giving away the whole answer.">
+        </label>
+        <div class="button-row">
+          <button id="btn-save-challenge" class="teacher-button" type="button">Save Practice</button>
+          <button id="btn-clear-form" class="secondary-button" type="button">Clear</button>
         </div>
+        <p id="save-feedback" class="form-message" hidden></p>
+      </section>
 
-        <div class="form-group">
-          <label for="input-category" class="form-label">Category *</label>
-          <select id="input-category" class="form-input form-select">
-            <option value="">— Select category —</option>
-            <option value="Absolute Beginner">Absolute Beginner</option>
-            <option value="WHERE + Scalar Functions">WHERE + Scalar Functions</option>
-            <option value="Joins">Joins</option>
-            <option value="Subqueries">Subqueries</option>
-            <option value="Set Functions">Set Functions</option>
-            <option value="Correlated Subqueries">Correlated Subqueries</option>
-            <option value="Group By">Group By</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="input-difficulty" class="form-label">Difficulty *</label>
-          <select id="input-difficulty" class="form-input form-select">
-            <option value="">— Select difficulty —</option>
-            <option value="easy">🟢 Easy</option>
-            <option value="medium">🟡 Medium</option>
-            <option value="hard">🔴 Hard</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="input-hint" class="form-label">Hint (optional)</label>
-          <input type="text" id="input-hint" class="form-input" placeholder="e.g. Use an INNER JOIN..."/>
-        </div>
-
-        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-          <button id="btn-save-challenge" class="btn-primary">💾 Forge Quest</button>
-          <button id="btn-clear-form" class="btn-ghost-glow">Clear</button>
-        </div>
-        <div id="save-feedback" class="save-feedback text-muted" style="margin-top: 1rem; display:none;"></div>
-      </div>
-
-      <!-- Tab: View Challenges -->
-      <div id="tab-view-challenges" class="tab-panel admin-card" style="display:none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-          <h2 class="admin-title text-gradient" style="font-size: 1.8rem; margin: 0;">All Quests</h2>
-          <div style="display: flex; gap: 1rem; align-items: center;">
-            <select id="filter-difficulty" class="form-input form-select" style="padding: 0.5rem 1rem; width: auto;">
+      <section id="tab-view-challenges" class="tab-panel teacher-panel" hidden>
+        <div class="library-toolbar">
+          <h2>Practice Library</h2>
+          <div class="filters">
+            <select id="filter-level">
+              <option value="">All Levels</option>
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+            <select id="filter-category">
+              <option value="">All Categories</option>
+            </select>
+            <select id="filter-difficulty">
               <option value="">All Difficulties</option>
               <option value="easy">Easy</option>
               <option value="medium">Medium</option>
               <option value="hard">Hard</option>
             </select>
-            <button id="btn-refresh-challenges" class="btn-ghost-glow">🔄 Refresh</button>
+            <button id="btn-refresh-challenges" class="secondary-button" type="button">Refresh</button>
           </div>
         </div>
-        <div id="challenges-list" class="challenges-list custom-scrollbar">
-          <p class="text-muted">Loading quests...</p>
-        </div>
-      </div>
+        <div id="challenges-list" class="mission-list"></div>
+      </section>
     </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
   <script src="js/app.js"></script>
   <script src="js/admin.js"></script>
 </body>

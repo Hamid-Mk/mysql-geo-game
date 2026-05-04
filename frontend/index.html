@@ -2,150 +2,78 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SQL Atlas — The Ultimate SQL Journey</title>
-  <link rel="stylesheet" href="css/style.css"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL Atlas — Learning Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="page-home">
-  <div id="tsparticles" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1;"></div>
-
-  <header class="glass-header">
-    <div class="header-inner">
-      <div class="logo">
-        <span class="logo-icon">🌍</span>
-        <span class="logo-text">SQL Atlas</span>
-      </div>
-      <nav class="site-nav">
-        <a href="admin_teacher.html" class="nav-link btn-ghost-glow">Teacher Portal</a>
-      </nav>
-    </div>
+  <div class="space-grid" aria-hidden="true"></div>
+  <header class="app-header">
+    <a class="brand-lockup" href="index.html" aria-label="SQL Atlas home">
+      <img src="assets/sql-atlas-logo.svg" alt="" class="brand-mark">
+      <span class="brand-text">SQL Atlas</span>
+    </a>
+    <nav class="header-actions">
+      <a class="nav-link teacher-link" href="admin_teacher.html">Teacher Portal</a>
+      <span id="student-status" class="student-status"></span>
+    </nav>
   </header>
-
-  <main class="hero-section">
-    <!-- Animated floating blobs inside hero -->
-    <div class="hero-blobs">
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
-      <div class="blob blob-3"></div>
-    </div>
-    
-    <div class="hero-content">
-      <div class="badge-container fade-in-up">
-        <span class="hero-badge">🎮 Level up your SQL skills</span>
+  <main class="dashboard-shell">
+    <section class="dashboard-hero" aria-labelledby="dashboard-title">
+      <div>
+        <p class="eyebrow">Interactive SQL learning</p>
+        <h1 id="dashboard-title">Choose your SQL level.</h1>
+        <p class="hero-copy">Practice SQL with real geography data, clear levels, saved progress, streaks, and helpful hints.</p>
       </div>
-
-      <h1 class="hero-headline fade-in-up delay-1">
-        Conquer Data by<br/>
-        <span class="headline-accent text-gradient">Exploring the World</span>
-      </h1>
-
-      <p class="hero-sub fade-in-up delay-1">
-        Embark on an epic journey through a massive geographic database. 
-        From basic queries to correlated subqueries, your code is your weapon.
-      </p>
-
-      <div class="hero-actions fade-in-up delay-2">
-        <a href="quiz.html?id=1" class="btn-primary btn-xl pulse-glow" style="transform: scale(1.1); margin-top: 1rem;">
-          <span class="btn-text">Start Your Journey</span>
-          <span class="btn-icon">⚔️</span>
-        </a>
-      </div>
-
-      <div class="stats-row fade-in-up delay-3">
-        <div class="stat-item">
-          <strong class="counter" data-target="100">100</strong>
-          <span>Epic Quests</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <strong class="counter" data-target="7">7</strong>
-          <span>Skill Tiers</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <strong class="counter" data-target="150000">150K+</strong>
-          <span>Cities to Explore</span>
+      <div class="hero-console" aria-label="Player summary">
+        <span class="console-label">Student Progress</span>
+        <strong id="home-player-name">Guest explorer</strong>
+        <div class="mini-stat-grid">
+          <span><b id="home-xp">0</b> XP</span>
+          <span><b id="home-completed">0</b> Complete</span>
+          <span><b id="home-best-streak">0</b> Best Streak</span>
         </div>
       </div>
-    </div>
+    </section>
+    <section class="level-grid" aria-label="SQL Atlas levels">
+      <article class="level-card" data-level-card="Beginner">
+        <div class="level-card-top"><span class="level-number">01</span><span class="difficulty-meter beginner">Start</span></div>
+        <h2>Beginner</h2>
+        <p>Build confidence with table browsing, selected columns, sorting, and small result sets.</p>
+        <div class="topic-pills"><span>SELECT</span><span>Columns</span><span>LIMIT</span><span>ORDER BY</span><span>DISTINCT</span></div>
+        <div class="level-progress"><div><strong data-progress-label="Beginner">0%</strong><span>Progress</span></div><div><strong data-streak-label="Beginner">0</strong><span>Best streak</span></div></div>
+        <div class="progress-track"><span data-progress-bar="Beginner"></span></div>
+        <a class="mission-button" data-level-link="Beginner" href="quiz.html?level=Beginner">Start Beginner</a>
+      </article>
+      <article class="level-card" data-level-card="Intermediate">
+        <div class="level-card-top"><span class="level-number">02</span><span class="difficulty-meter intermediate">Grow</span></div>
+        <h2>Intermediate</h2>
+        <p>Use filters, comparisons, text functions, and aggregate calculations on real data.</p>
+        <div class="topic-pills"><span>WHERE</span><span>BETWEEN</span><span>LIKE</span><span>IN</span><span>Functions</span><span>Aggregates</span></div>
+        <div class="level-progress"><div><strong data-progress-label="Intermediate">0%</strong><span>Progress</span></div><div><strong data-streak-label="Intermediate">0</strong><span>Best streak</span></div></div>
+        <div class="progress-track"><span data-progress-bar="Intermediate"></span></div>
+        <a class="mission-button" data-level-link="Intermediate" href="quiz.html?level=Intermediate">Start Intermediate</a>
+      </article>
+      <article class="level-card" data-level-card="Advanced">
+        <div class="level-card-top"><span class="level-number">03</span><span class="difficulty-meter advanced">Challenge</span></div>
+        <h2>Advanced</h2>
+        <p>Connect tables, group results, and solve multi-step SQL questions with joins and subqueries.</p>
+        <div class="topic-pills"><span>JOIN</span><span>LEFT JOIN</span><span>GROUP BY</span><span>HAVING</span><span>Subqueries</span></div>
+        <div class="level-progress"><div><strong data-progress-label="Advanced">0%</strong><span>Progress</span></div><div><strong data-streak-label="Advanced">0</strong><span>Best streak</span></div></div>
+        <div class="progress-track"><span data-progress-bar="Advanced"></span></div>
+        <a class="mission-button" data-level-link="Advanced" href="quiz.html?level=Advanced">Start Advanced</a>
+      </article>
+    </section>
   </main>
-
-  <!-- Interactive Map Preview -->
-  <section class="features-section fade-in-up delay-4">
-    <h2>Your Skill Tree</h2>
-    <div class="skill-tree-grid">
-      <div class="skill-node">
-        <div class="node-icon">🌱</div>
-        <h3>Beginner</h3>
-        <p>Master SELECT, LIMIT & ORDER BY</p>
-      </div>
-      <div class="skill-line"></div>
-      <div class="skill-node">
-        <div class="node-icon">🛡️</div>
-        <h3>Filtering</h3>
-        <p>Wield WHERE & Scalar Functions</p>
-      </div>
-      <div class="skill-line"></div>
-      <div class="skill-node">
-        <div class="node-icon">🔗</div>
-        <h3>Joins</h3>
-        <p>Connect dimensions with INNER/LEFT JOINs</p>
-      </div>
-      <div class="skill-line"></div>
-      <div class="skill-node">
-        <div class="node-icon">🔮</div>
-        <h3>Advanced</h3>
-        <p>Command Subqueries & GROUP BY</p>
-      </div>
-    </div>
-  </section>
-
-  <footer class="site-footer fade-in-up delay-4">
-    <p>Forged for high school adventurers. 🌍✨</p>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-engine@2/tsparticles.engine.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-basic@2/tsparticles.basic.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-interaction-particles-links@2/tsparticles.interaction.particles.links.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-move-base@2/tsparticles.move.base.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-shape-circle@2/tsparticles.shape.circle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-updater-color@2/tsparticles.updater.color.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-updater-opacity@2/tsparticles.updater.opacity.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-updater-out-modes@2/tsparticles.updater.out-modes.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-updater-size@2/tsparticles.updater.size.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
   <script src="js/app.js"></script>
   <script>
-    // Simple counter animation for stats with IntersectionObserver
-    const counters = document.querySelectorAll('.counter');
-    const speed = 200; 
-
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const counter = entry.target;
-          const target = +counter.getAttribute('data-target');
-          let count = 0;
-          const inc = target / speed;
-
-          const updateCount = () => {
-            if (count < target) {
-              count += inc;
-              counter.innerText = Math.ceil(count);
-              setTimeout(updateCount, 15);
-            } else {
-              counter.innerText = target.toLocaleString() + (target > 1000 ? '+' : '');
-            }
-          };
-          updateCount();
-          observer.unobserve(counter);
-        }
-      });
-    }, { threshold: 0.5 });
-
-    counters.forEach(counter => observer.observe(counter));
+    document.addEventListener("DOMContentLoaded", () => {
+      renderStudentHeader();
+      renderHomeProgress();
+    });
   </script>
 </body>
 </html>

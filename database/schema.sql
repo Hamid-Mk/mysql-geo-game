@@ -1,83 +1,73 @@
--- =============================================================================
--- schema.sql  —  SQL Atlas  |  Database Schema
--- =============================================================================
--- PURPOSE:
---   Defines all tables for the SQL Atlas geography game.
---   Run this FIRST before seed.sql.
---   Safe to re-run — uses CREATE TABLE IF NOT EXISTS.
---
--- HOW TO RUN:
---   mysql -u root -p sql_atlas < database/schema.sql
---
--- TABLE OVERVIEW:
---   countries         — core geography data (the main table students query)
---   cities            — cities linked to countries
---   rivers            — rivers with length and continent
---   languages         — language names
---   country_languages — many-to-many: which languages a country speaks
---   challenges        — the game questions + expected SQL answers
--- =============================================================================
-
 CREATE DATABASE IF NOT EXISTS sql_atlas;
 USE sql_atlas;
 
+CREATE TABLE IF NOT EXISTS countries (
+    id mediumint unsigned NOT NULL AUTO_INCREMENT,
+    name varchar(100) NOT NULL,
+    iso2 char(2) DEFAULT NULL,
+    iso3 char(3) DEFAULT NULL,
+    capital varchar(255) DEFAULT NULL,
+    currency varchar(255) DEFAULT NULL,
+    currency_name varchar(255) DEFAULT NULL,
+    gdp bigint unsigned DEFAULT NULL,
+    latitude decimal(10,8) DEFAULT NULL,
+    longitude decimal(11,8) DEFAULT NULL,
+    nationality varchar(255) DEFAULT NULL,
+    phonecode varchar(255) DEFAULT NULL,
+    population bigint unsigned DEFAULT NULL,
+    region varchar(255) DEFAULT NULL,
+    subregion varchar(255) DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY idx_countries_region (region),
+    KEY idx_countries_subregion (subregion),
+    KEY idx_countries_currency (currency)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS states (
+    id mediumint unsigned NOT NULL AUTO_INCREMENT,
+    name varchar(255) NOT NULL,
+    country_id mediumint unsigned NOT NULL,
+    country_code char(2) NOT NULL,
+    country_name varchar(255) DEFAULT NULL,
+    latitude decimal(10,8) DEFAULT NULL,
+    longitude decimal(11,8) DEFAULT NULL,
+    population bigint unsigned DEFAULT NULL,
+    type varchar(191) DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY idx_states_country (country_id),
+    CONSTRAINT fk_states_country FOREIGN KEY (country_id) REFERENCES countries(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -----------------------------------------------------------------------------
--- 3. RIVERS
---    Independent table (rivers cross multiple countries).
---    Advanced challenges ask about rivers.
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS rivers (
-    id          INT           PRIMARY KEY AUTO_INCREMENT,
-    name        VARCHAR(100)  NOT NULL UNIQUE,
-    length_km   FLOAT,                        -- total length in km
-    continent   VARCHAR(50),
-    outflow     VARCHAR(100)                  -- body of water the river flows into
-);
+CREATE TABLE IF NOT EXISTS cities (
+    id mediumint unsigned NOT NULL AUTO_INCREMENT,
+    name varchar(255) NOT NULL,
+    country_id mediumint unsigned NOT NULL,
+    country_code char(2) NOT NULL,
+    country_name varchar(255) DEFAULT NULL,
+    latitude decimal(10,8) NOT NULL,
+    longitude decimal(11,8) NOT NULL,
+    population bigint unsigned DEFAULT NULL,
+    state_id mediumint unsigned NOT NULL,
+    state_code varchar(255) NOT NULL,
+    state_name varchar(255) DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY idx_cities_state (state_id),
+    KEY idx_cities_country (country_id),
+    CONSTRAINT fk_cities_state FOREIGN KEY (state_id) REFERENCES states(id),
+    CONSTRAINT fk_cities_country FOREIGN KEY (country_id) REFERENCES countries(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -----------------------------------------------------------------------------
--- 4. LANGUAGES
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS languages (
-    id      INT           PRIMARY KEY AUTO_INCREMENT,
-    name    VARCHAR(100)  NOT NULL UNIQUE
-);
-
--- -----------------------------------------------------------------------------
--- 5. COUNTRY_LANGUAGES  (many-to-many join table)
---    Tracks which languages are spoken/official in each country.
---    Hard-level JOIN challenges use this table.
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS country_languages (
-    country_id  MEDIUMINT UNSIGNED NOT NULL,
-    language_id INT     NOT NULL,
-    is_official BOOLEAN DEFAULT FALSE,
-    PRIMARY KEY (country_id, language_id),
-    FOREIGN KEY (country_id)  REFERENCES countries(id)  ON DELETE CASCADE,
-    FOREIGN KEY (language_id) REFERENCES languages(id)  ON DELETE CASCADE
-);
-
--- -----------------------------------------------------------------------------
--- 6. CHALLENGES
---    Stores all game questions and their correct SQL answers.
---    The backend fetches expected_query server-side — never sent to the client.
--- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS challenges (
-    id              INT           PRIMARY KEY AUTO_INCREMENT,
-    question_text   TEXT          NOT NULL,     -- shown to the student
-    expected_query  TEXT          NOT NULL,     -- kept server-side, used for verification
-    category        VARCHAR(100)  NOT NULL,     -- e.g. 'Joins', 'Subqueries'
-    difficulty      ENUM('easy', 'medium', 'hard') NOT NULL DEFAULT 'easy',
-    hint            TEXT,                       -- optional hint shown after 2 wrong attempts
-    created_at      TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
-);
-
--- -----------------------------------------------------------------------------
--- Indexes for performance (added after table creation)
--- Note: MySQL 8.0.30+ supports IF NOT EXISTS, but for compatibility we use standard CREATE INDEX
--- db.py handles skipping these if they already exist.
--- -----------------------------------------------------------------------------
-CREATE INDEX idx_cl_country        ON country_languages(country_id);
-CREATE INDEX idx_cl_language       ON country_languages(language_id);
-CREATE INDEX idx_challenges_diff   ON challenges(difficulty);
+    id int NOT NULL AUTO_INCREMENT,
+    question_text text NOT NULL,
+    expected_query text NOT NULL,
+    difficulty enum('easy', 'medium', 'hard') NOT NULL DEFAULT 'easy',
+    category varchar(100) NOT NULL,
+    level enum('Beginner', 'Intermediate', 'Advanced') NOT NULL DEFAULT 'Beginner',
+    hint text,
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_challenges_diff (difficulty),
+    KEY idx_challenges_level (level),
+    KEY idx_challenges_category (category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

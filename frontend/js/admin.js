@@ -1,250 +1,176 @@
-// =============================================================================
-// admin.js  —  SQL Atlas  |  Teacher Dashboard Logic
-// =============================================================================
-// PURPOSE:
-//   Controls everything on admin_teacher.html:
-//   - Teacher login / logout
-//   - Tab switching
-//   - Add Challenge form with validation
-//   - View all challenges list with difficulty filter
-//
-// DEPENDS ON:  app.js  (must be loaded first)
-// =============================================================================
+const el = {};
+let cachedChallenges = [];
 
-// ─── DOM References ───────────────────────────────────────────────────────────
-const elLoginSection     = document.getElementById("login-section");
-const elDashboardSection = document.getElementById("dashboard-section");
-const elPasswordInput    = document.getElementById("password-input");
-const elBtnLogin         = document.getElementById("btn-login");
-const elBtnLogout        = document.getElementById("btn-logout");
-const elLoginError       = document.getElementById("login-error");
-
-const elBtnSaveChallenge = document.getElementById("btn-save-challenge");
-const elBtnClearForm     = document.getElementById("btn-clear-form");
-const elInputQuestion    = document.getElementById("input-question");
-const elInputExpectedSql = document.getElementById("input-expected-sql");
-const elInputCategory    = document.getElementById("input-category");
-const elInputDifficulty  = document.getElementById("input-difficulty");
-const elInputHint        = document.getElementById("input-hint");
-const elSaveFeedback     = document.getElementById("save-feedback");
-
-const elBtnRefresh       = document.getElementById("btn-refresh-challenges");
-const elFilterDifficulty = document.getElementById("filter-difficulty");
-const elChallengesList   = document.getElementById("challenges-list");
-
-// ─────────────────────────────────────────────────────────────────────────────
-// INIT
-// ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  // If already logged in (token in sessionStorage), skip login form
-  if (getAdminToken()) {
-    showDashboard();
-  }
+  [
+    "login-section", "dashboard-section", "password-input", "btn-login", "btn-logout", "login-error",
+    "btn-save-challenge", "btn-clear-form", "input-question", "input-expected-sql", "input-category",
+    "input-difficulty", "input-level", "input-hint", "save-feedback", "btn-refresh-challenges",
+    "filter-difficulty", "filter-level", "filter-category", "challenges-list"
+  ].forEach((id) => el[id] = document.getElementById(id));
 
-  // Wire buttons
-  elBtnLogin.addEventListener("click", handleLogin);
-  elBtnLogout.addEventListener("click", handleLogout);
-  elBtnSaveChallenge.addEventListener("click", handleSaveChallenge);
-  elBtnClearForm.addEventListener("click", clearForm);
-  elBtnRefresh.addEventListener("click", loadChallengesList);
-  elFilterDifficulty.addEventListener("change", loadChallengesList);
-
-  // Allow Enter key in password field
-  elPasswordInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") handleLogin();
+  if (getAdminToken()) showDashboard();
+  el["btn-login"].addEventListener("click", handleLogin);
+  el["password-input"].addEventListener("keydown", (event) => {
+    if (event.key === "Enter") handleLogin();
   });
-
-  // Tab switching
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+  el["btn-logout"].addEventListener("click", handleLogout);
+  el["btn-save-challenge"].addEventListener("click", handleSaveChallenge);
+  el["btn-clear-form"].addEventListener("click", clearForm);
+  el["btn-refresh-challenges"].addEventListener("click", loadChallengesList);
+  el["filter-difficulty"].addEventListener("change", renderChallengeList);
+  el["filter-level"].addEventListener("change", renderChallengeList);
+  el["filter-category"].addEventListener("change", renderChallengeList);
+  document.querySelectorAll(".tab-btn").forEach((button) => {
+    button.addEventListener("click", () => switchTab(button.dataset.tab));
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// LOGIN / LOGOUT
-// ─────────────────────────────────────────────────────────────────────────────
 async function handleLogin() {
-  const password = elPasswordInput.value.trim();
-  if (!password) {
-    elLoginError.textContent = "Please enter a password.";
-    elLoginError.style.display = "block";
-    return;
-  }
-
-  elBtnLogin.disabled = true;
-  elBtnLogin.textContent = "Logging in...";
-  elLoginError.style.display = "none";
-
+  const password = el["password-input"].value.trim();
+  if (!password) return showLoginError("Please enter the teacher password.");
+  el["btn-login"].disabled = true;
+  el["btn-login"].textContent = "Checking...";
+  el["login-error"].hidden = true;
   try {
     const data = await api("/admin/login", "POST", { password });
     setAdminToken(data.token);
     showDashboard();
-  } catch (e) {
-    elLoginError.textContent = "❌ " + e.message;
-    elLoginError.style.display = "block";
+  } catch (err) {
+    showLoginError(err.message);
   } finally {
-    elBtnLogin.disabled = false;
-    elBtnLogin.textContent = "Login →";
+    el["btn-login"].disabled = false;
+    el["btn-login"].textContent = "Access Portal";
   }
+}
+
+function showLoginError(message) {
+  el["login-error"].textContent = message;
+  el["login-error"].hidden = false;
 }
 
 function handleLogout() {
   clearAdminToken();
-  elDashboardSection.style.display = "none";
-  elLoginSection.style.display = "block";
-  elPasswordInput.value = "";
+  el["dashboard-section"].hidden = true;
+  el["login-section"].hidden = false;
 }
 
 function showDashboard() {
-  elLoginSection.style.display = "none";
-  elDashboardSection.style.display = "block";
-  loadChallengesList();  // pre-load challenge list on dashboard open
+  el["login-section"].hidden = true;
+  el["dashboard-section"].hidden = false;
+  loadChallengesList();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TAB SWITCHING
-// ─────────────────────────────────────────────────────────────────────────────
 function switchTab(tabId) {
-  // Update button active states
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.tab === tabId);
-  });
-
-  // Show/hide panels
-  document.querySelectorAll(".tab-panel").forEach(panel => {
-    panel.style.display = panel.id === `tab-${tabId}` ? "block" : "none";
-  });
-
-  // Load challenges list when switching to that tab
+  document.querySelectorAll(".tab-btn").forEach((button) => button.classList.toggle("active", button.dataset.tab === tabId));
+  document.querySelectorAll(".tab-panel").forEach((panel) => panel.hidden = panel.id !== `tab-${tabId}`);
   if (tabId === "view-challenges") loadChallengesList();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ADD CHALLENGE FORM
-// ─────────────────────────────────────────────────────────────────────────────
 async function handleSaveChallenge() {
-  const question = elInputQuestion.value.trim();
-  const expectedSql = elInputExpectedSql.value.trim();
-  const category = elInputCategory.value;
-  const difficulty = elInputDifficulty.value;
-  const hint = elInputHint.value.trim();
-
-  // Reset errors
-  document.querySelectorAll(".field-error").forEach(el => el.style.display = "none");
-  document.querySelectorAll(".form-input").forEach(el => el.classList.remove("error"));
-
-  // Validate
-  let hasError = false;
-  if (!question) {
-    document.querySelector('.field-error[data-field="question"]').style.display = "block";
-    elInputQuestion.classList.add("error");
-    hasError = true;
+  const payload = {
+    question_text: el["input-question"].value.trim(),
+    expected_query: el["input-expected-sql"].value.trim(),
+    category: el["input-category"].value,
+    difficulty: el["input-difficulty"].value,
+    level: el["input-level"].value,
+    hint: el["input-hint"].value.trim(),
+  };
+  if (!payload.question_text || !payload.expected_query || !payload.category || !payload.difficulty || !payload.level) {
+    return showSaveFeedback("Please fill in level, category, difficulty, question, and SQL.", false);
   }
-  if (!expectedSql) {
-    document.querySelector('.field-error[data-field="expected_sql"]').style.display = "block";
-    elInputExpectedSql.classList.add("error");
-    hasError = true;
-  }
-  if (!category) {
-    document.querySelector('.field-error[data-field="category"]').style.display = "block";
-    elInputCategory.classList.add("error");
-    hasError = true;
-  }
-  if (!difficulty) {
-    document.querySelector('.field-error[data-field="difficulty"]').style.display = "block";
-    elInputDifficulty.classList.add("error");
-    hasError = true;
-  }
-
-  if (hasError) return;
-
-  // --- Submit ---
-  elBtnSaveChallenge.disabled = true;
-  elBtnSaveChallenge.textContent = "Saving...";
-  hideSaveFeedback();
-
+  el["btn-save-challenge"].disabled = true;
+  el["btn-save-challenge"].textContent = "Saving...";
   try {
-    await api("/admin/add-challenge", "POST",
-      {
-        question_text: question,
-        expected_query: expectedSql,
-        category: category,
-        difficulty: difficulty,
-        hint: hint || null,
-      },
-      { "X-Admin-Token": getAdminToken() }
-    );
-    showSaveFeedback(true, "✅ Challenge saved successfully!");
+    await api("/admin/add-challenge", "POST", payload, { "X-Admin-Token": getAdminToken() });
+    showSaveFeedback("Question saved.", true);
     clearForm();
-  } catch (e) {
-    showSaveFeedback(false, "❌ Error: " + e.message);
+    loadChallengesList();
+  } catch (err) {
+    showSaveFeedback(err.message, false);
   } finally {
-    elBtnSaveChallenge.disabled = false;
-    elBtnSaveChallenge.textContent = "💾 Save Challenge";
+    el["btn-save-challenge"].disabled = false;
+    el["btn-save-challenge"].textContent = "Save Question";
   }
 }
 
 function clearForm() {
-  elInputQuestion.value    = "";
-  elInputExpectedSql.value = "";
-  elInputDifficulty.value  = "";
-  elInputHint.value        = "";
-  document.querySelectorAll(".field-error").forEach(el => el.style.display = "none");
-  document.querySelectorAll(".form-input.error").forEach(el => el.classList.remove("error"));
-  hideSaveFeedback();
+  el["input-question"].value = "";
+  el["input-expected-sql"].value = "";
+  el["input-hint"].value = "";
+  el["input-level"].value = "Beginner";
+  el["input-difficulty"].value = "easy";
 }
 
-function showSaveFeedback(success, message) {
-  elSaveFeedback.textContent = message;
-  elSaveFeedback.className = `save-feedback ${success ? "success" : "error"}`;
-  elSaveFeedback.style.display = "block";
-  // Auto-hide after 4 seconds
-  setTimeout(hideSaveFeedback, 4000);
+function showSaveFeedback(message, success) {
+  el["save-feedback"].textContent = message;
+  el["save-feedback"].className = `form-message ${success ? "success" : "error"}`;
+  el["save-feedback"].hidden = false;
 }
 
-function hideSaveFeedback() {
-  elSaveFeedback.style.display = "none";
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// VIEW ALL CHALLENGES
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadChallengesList() {
-  elChallengesList.innerHTML = '<p class="loading-text">Loading...</p>';
-
-  let challenges;
+  el["challenges-list"].innerHTML = `<p class="muted">Loading questions...</p>`;
   try {
-    challenges = await api("/challenges");
-  } catch (e) {
-    elChallengesList.innerHTML = `<p class="loading-text" style="color:var(--red)">Failed to load: ${e.message}</p>`;
+    cachedChallenges = await api("/challenges");
+  } catch (err) {
+    el["challenges-list"].innerHTML = `<p class="field-error">${err.message}</p>`;
+    return;
+  }
+  populateCategoryFilter();
+  renderChallengeList();
+}
+
+function populateCategoryFilter() {
+  const categories = [...new Set(cachedChallenges.map((challenge) => challenge.category).filter(Boolean))].sort();
+  const current = el["filter-category"].value;
+  el["filter-category"].innerHTML = `<option value="">All Categories</option>`;
+  categories.forEach((category) => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    el["filter-category"].appendChild(option);
+  });
+  el["filter-category"].value = current;
+}
+
+function renderChallengeList() {
+  const level = el["filter-level"].value;
+  const category = el["filter-category"].value;
+  const difficulty = el["filter-difficulty"].value;
+  const rows = cachedChallenges.filter((challenge) => {
+    const challengeLevel = levelFromChallenge(challenge);
+    return (!level || challengeLevel === level)
+      && (!category || challenge.category === category)
+      && (!difficulty || challenge.difficulty === difficulty);
+  });
+
+  if (!rows.length) {
+    el["challenges-list"].innerHTML = `<p class="muted">No questions match those filters.</p>`;
     return;
   }
 
-  // Apply difficulty filter
-  const filterVal = elFilterDifficulty.value;
-  if (filterVal) {
-    challenges = challenges.filter(c => c.difficulty === filterVal);
-  }
-
-  if (challenges.length === 0) {
-    elChallengesList.innerHTML = '<p class="loading-text">No challenges found.</p>';
-    return;
-  }
-
-  elChallengesList.innerHTML = "";
-  challenges.forEach((c, i) => {
-    const row = document.createElement("div");
-    row.className = "challenge-row";
+  el["challenges-list"].innerHTML = "";
+  rows.forEach((challenge) => {
+    const row = document.createElement("article");
+    row.className = "mission-row";
     row.innerHTML = `
-      <span class="challenge-row-num">#${c.id}</span>
-      <div class="challenge-row-body">
-        <p>${c.question_text}</p>
-        <small>
-          <span class="diff-badge ${difficultyClass(c.difficulty)}">${c.difficulty}</span>
-          ${c.hint ? ` · 💡 ${c.hint}` : ""}
-        </small>
+      <span class="mission-id">#${challenge.id}</span>
+      <div>
+        <strong>${escapeHtml(challenge.question_text)}</strong>
+        <p>
+          <span>${levelFromChallenge(challenge)}</span>
+          <span>${escapeHtml(challenge.category || "")}</span>
+          <span class="diff ${difficultyClass(challenge.difficulty)}">${escapeHtml(challenge.difficulty || "")}</span>
+        </p>
+        ${challenge.hint ? `<small>Hint: ${escapeHtml(challenge.hint)}</small>` : ""}
       </div>
     `;
-    elChallengesList.appendChild(row);
+    el["challenges-list"].appendChild(row);
   });
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+  }[char]));
 }
