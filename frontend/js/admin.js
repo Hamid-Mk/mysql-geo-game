@@ -83,14 +83,14 @@ async function handleSaveChallenge() {
   el["btn-save-challenge"].textContent = "Saving...";
   try {
     await api("/admin/add-challenge", "POST", payload, { "X-Admin-Token": getAdminToken() });
-    showSaveFeedback("Question saved.", true);
+    showSaveFeedback("Quest saved.", true);
     clearForm();
     loadChallengesList();
   } catch (err) {
     showSaveFeedback(err.message, false);
   } finally {
     el["btn-save-challenge"].disabled = false;
-    el["btn-save-challenge"].textContent = "Save Question";
+    el["btn-save-challenge"].textContent = "Save Quest";
   }
 }
 
@@ -109,7 +109,7 @@ function showSaveFeedback(message, success) {
 }
 
 async function loadChallengesList() {
-  el["challenges-list"].innerHTML = `<p class="muted">Loading questions...</p>`;
+  el["challenges-list"].innerHTML = `<p class="muted">Loading quests...</p>`;
   try {
     cachedChallenges = await api("/challenges");
   } catch (err) {
@@ -145,14 +145,14 @@ function renderChallengeList() {
   });
 
   if (!rows.length) {
-    el["challenges-list"].innerHTML = `<p class="muted">No questions match those filters.</p>`;
+    el["challenges-list"].innerHTML = `<p class="muted">No quests match those filters.</p>`;
     return;
   }
 
   el["challenges-list"].innerHTML = "";
   rows.forEach((challenge) => {
     const row = document.createElement("article");
-    row.className = "mission-row";
+    row.className = `mission-row ${difficultyClass(challenge.difficulty)}`;
     row.innerHTML = `
       <span class="mission-id">#${challenge.id}</span>
       <div>

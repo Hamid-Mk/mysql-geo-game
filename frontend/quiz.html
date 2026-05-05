@@ -4,35 +4,57 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SQL Atlas — Practice</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      var theme = localStorage.getItem("theme") || "dark";
+      document.documentElement.dataset.initialTheme = theme;
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="page-quiz">
-  <div class="space-grid" aria-hidden="true"></div>
+  <script>document.body.classList.add((localStorage.getItem("theme") || "dark") === "light" ? "light-mode" : "dark-mode");</script>
+  <div class="sci-fi-grid" aria-hidden="true"></div>
   <header class="app-header quiz-header">
     <a class="brand-lockup" href="index.html">
-      <img src="assets/sql-atlas-logo.svg" alt="" class="brand-mark">
-      <span class="brand-text">SQL Atlas</span>
+      <img src="assets/logo.svg" alt="SQL Atlas logo" class="logo-img brand-mark" />
+      <span class="brand-text">SQL ATLAS</span>
     </a>
-    <div class="quiz-top-stats">
+    <button class="hamburger" type="button" aria-label="Open navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="nav-links header-actions">
+      <label class="theme-switch" title="Toggle light and dark mode">
+        <span>🌙</span>
+        <input id="theme-toggle" type="checkbox" aria-label="Toggle light mode" />
+        <i></i>
+        <span>☀️</span>
+      </label>
+      <div id="streak-lives" class="streak-lives" aria-label="Streak lives">
+        <span class="life active">🛡️</span><span class="life active">🛡️</span><span class="life active">🛡️</span>
+      </div>
       <span id="level-chip" class="status-chip">Beginner</span>
-      <span id="xp-chip" class="status-chip">0 XP</span>
+      <span id="xp-chip" class="status-chip xp-status">0 XP</span>
       <span id="streak-chip" class="status-chip">Streak 0</span>
       <span id="mistake-chip" class="status-chip danger">Mistakes 0/3</span>
-      <span id="hint-chip" class="status-chip hint">Hints 0</span>
-    </div>
-    <nav class="header-actions">
+      <span id="hint-chip" class="status-chip hint">💡 Hints: 5/5</span>
+      <button id="sound-toggle" class="nav-link sound-toggle" type="button">Sound On</button>
+      <button class="nav-link student-login-btn" type="button">Student Login</button>
+      <a class="nav-link teacher-link" href="admin_teacher.html">Teacher</a>
       <span id="student-status" class="student-status"></span>
     </nav>
   </header>
 
+  <button id="schema-mobile-toggle" class="schema-mobile-toggle" type="button">Schema 📋</button>
   <main class="mission-layout">
-    <aside class="schema-panel">
+    <aside class="schema-panel glass-card" id="schema-panel">
+      <button id="schema-collapse" class="schema-collapse" type="button" aria-label="Collapse schema">‹</button>
       <div class="panel-heading">
-        <span class="console-label">Schema Guide</span>
-        <strong>Database Schema</strong>
+        <span class="console-label">Tome of Knowledge</span>
+        <strong>World Schema</strong>
       </div>
       <details open>
         <summary>countries</summary>
@@ -47,12 +69,13 @@
         <code>id</code><code>name</code><code>country_id</code><code>country_code</code><code>country_name</code><code>latitude</code><code>longitude</code><code>population</code><code>state_id</code><code>state_code</code><code>state_name</code>
       </details>
     </aside>
+    <button id="schema-restore" class="schema-restore" type="button">Schema</button>
 
     <section class="mission-main">
-      <div class="mission-card">
+      <div class="mission-card question-card card-scanline glass-card">
         <div class="mission-meta">
           <span id="challenge-category">Loading</span>
-          <span id="challenge-number">Practice 1</span>
+          <span id="challenge-number">Q.1 / 100</span>
         </div>
         <h1 id="question-text">Loading question...</h1>
         <div class="mission-progress">
@@ -61,12 +84,20 @@
         </div>
       </div>
 
-      <div class="terminal-panel">
+      <div id="editor-container" class="terminal-panel glass-card">
         <div class="terminal-toolbar">
+          <div class="mac-dots" aria-hidden="true"><span></span><span></span><span></span></div>
           <span>SQL Terminal</span>
-          <span>Ctrl + Enter</span>
+          <span>CTRL + ENTER</span>
         </div>
-        <textarea id="sql-editor" spellcheck="false" autocomplete="off" placeholder="SELECT name, population FROM countries ORDER BY population DESC LIMIT 5;"></textarea>
+        <div class="editor-shell">
+          <pre id="line-numbers" class="line-numbers" aria-hidden="true">1</pre>
+          <textarea id="sql-editor" spellcheck="false" autocomplete="off" placeholder="SELECT name, population FROM countries ORDER BY population DESC LIMIT 5;"></textarea>
+        </div>
+        <div class="editor-footer">
+          <span id="syntax-preview" class="syntax-preview">Keywords light up as you type.</span>
+          <span id="char-count">0 characters</span>
+        </div>
         <div id="hint-box" class="hint-box" hidden></div>
         <div class="terminal-actions">
           <button id="btn-hint" class="secondary-button" type="button">Use Hint</button>
@@ -75,7 +106,7 @@
         </div>
       </div>
 
-      <section id="results-container" class="results-panel" hidden>
+      <section id="results-container" class="results-panel glass-card" hidden>
         <div class="results-header">
           <strong>Query Output</strong>
           <span id="results-count">0 rows</span>
@@ -89,19 +120,19 @@
       </section>
     </section>
 
-    <aside class="player-panel">
+    <aside class="player-panel glass-card">
       <div class="panel-heading">
-        <span class="console-label">Practice Stats</span>
+        <span class="console-label">Run Status</span>
         <strong id="player-name">Guest explorer</strong>
       </div>
       <div class="stat-stack">
         <div><span>XP</span><strong id="side-xp">0</strong></div>
         <div><span>Current streak</span><strong id="side-streak">0</strong></div>
         <div><span>Best level streak</span><strong id="side-best-streak">0</strong></div>
-        <div><span>Hints remaining</span><strong id="side-hints">0</strong></div>
+        <div><span>Hints remaining</span><strong id="side-hints">5 / 5</strong></div>
         <div><span>Mistakes</span><strong id="side-mistakes">0 / 3</strong></div>
       </div>
-      <a class="secondary-button full-width" href="index.html">Back to Levels</a>
+      <a class="secondary-button full-width" href="index.html">Return to Base</a>
     </aside>
   </main>
 
@@ -113,7 +144,38 @@
     <button id="feedback-action" type="button">Continue</button>
   </div>
 
+  <div id="hint-confirm" class="hint-confirm" hidden>
+    <div class="glass-card">
+      <h2>Use a hint?</h2>
+      <p id="hint-confirm-text">Are you sure?</p>
+      <div class="button-row">
+        <button id="hint-confirm-yes" class="mission-button" type="button">Confirm</button>
+        <button id="hint-confirm-no" class="secondary-button" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="streak-modal" class="streak-modal" hidden>
+    <div class="streak-modal-card">
+      <div class="broken-shield" aria-hidden="true"></div>
+      <h2>STREAK BROKEN</h2>
+      <p>3 wrong answers in a row. Your streak has been reset.</p>
+      <strong id="lost-streak">Lost streak: 0</strong>
+      <div class="button-row">
+        <button id="streak-try-again" class="mission-button" type="button">Try Again</button>
+        <a class="secondary-button" href="index.html">Return to Base</a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <img src="assets/logo.svg" alt="SQL Atlas logo" class="logo-img footer-logo" />
+    <p>SQL Atlas — keep your streak alive and query the world.</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/student.js"></script>
   <script src="js/quiz.js"></script>
 </body>
 </html>
