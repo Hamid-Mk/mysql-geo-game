@@ -6,11 +6,12 @@
   <title>SQL Atlas — Learning Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="page-home">
   <div class="space-grid" aria-hidden="true"></div>
+  <div class="starfield" aria-hidden="true"></div>
   <header class="app-header">
     <a class="brand-lockup" href="index.html" aria-label="SQL Atlas home">
       <img src="assets/sql-atlas-logo.svg" alt="" class="brand-mark">
@@ -24,9 +25,10 @@
   <main class="dashboard-shell">
     <section class="dashboard-hero" aria-labelledby="dashboard-title">
       <div>
+        <img src="assets/sql-atlas-logo.svg" alt="SQL Atlas" class="hero-logo">
         <p class="eyebrow">Interactive SQL learning</p>
-        <h1 id="dashboard-title">Choose your SQL level.</h1>
-        <p class="hero-copy">Practice SQL with real geography data, clear levels, saved progress, streaks, and helpful hints.</p>
+        <h1 id="dashboard-title">SQL Atlas</h1>
+        <p class="hero-copy">Choose your SQL level and solve geography missions with real database queries, saved progress, streaks, and helpful hints.</p>
       </div>
       <div class="hero-console" aria-label="Player summary">
         <span class="console-label">Student Progress</span>
@@ -40,7 +42,7 @@
     </section>
     <section class="level-grid" aria-label="SQL Atlas levels">
       <article class="level-card" data-level-card="Beginner">
-        <div class="level-card-top"><span class="level-number">01</span><span class="difficulty-meter beginner">Start</span></div>
+        <div class="level-card-top"><span class="level-icon beginner-icon" aria-hidden="true"></span><span class="level-number">01</span><span class="difficulty-meter beginner">Start</span></div>
         <h2>Beginner</h2>
         <p>Build confidence with table browsing, selected columns, sorting, and small result sets.</p>
         <div class="topic-pills"><span>SELECT</span><span>Columns</span><span>LIMIT</span><span>ORDER BY</span><span>DISTINCT</span></div>
@@ -49,7 +51,7 @@
         <a class="mission-button" data-level-link="Beginner" href="quiz.html?level=Beginner">Start Beginner</a>
       </article>
       <article class="level-card" data-level-card="Intermediate">
-        <div class="level-card-top"><span class="level-number">02</span><span class="difficulty-meter intermediate">Grow</span></div>
+        <div class="level-card-top"><span class="level-icon intermediate-icon" aria-hidden="true"></span><span class="level-number">02</span><span class="difficulty-meter intermediate">Grow</span></div>
         <h2>Intermediate</h2>
         <p>Use filters, comparisons, text functions, and aggregate calculations on real data.</p>
         <div class="topic-pills"><span>WHERE</span><span>BETWEEN</span><span>LIKE</span><span>IN</span><span>Functions</span><span>Aggregates</span></div>
@@ -58,7 +60,7 @@
         <a class="mission-button" data-level-link="Intermediate" href="quiz.html?level=Intermediate">Start Intermediate</a>
       </article>
       <article class="level-card" data-level-card="Advanced">
-        <div class="level-card-top"><span class="level-number">03</span><span class="difficulty-meter advanced">Challenge</span></div>
+        <div class="level-card-top"><span class="level-icon advanced-icon" aria-hidden="true"></span><span class="level-number">03</span><span class="difficulty-meter advanced">Challenge</span></div>
         <h2>Advanced</h2>
         <p>Connect tables, group results, and solve multi-step SQL questions with joins and subqueries.</p>
         <div class="topic-pills"><span>JOIN</span><span>LEFT JOIN</span><span>GROUP BY</span><span>HAVING</span><span>Subqueries</span></div>
@@ -68,6 +70,10 @@
       </article>
     </section>
   </main>
+  <footer class="site-footer">
+    <span>SQL Atlas</span>
+    <span>Learn SQL by exploring the world.</span>
+  </footer>
   <script src="js/app.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {

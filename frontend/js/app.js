@@ -53,6 +53,43 @@ function installThemeToggle() {
   applyTheme();
 }
 
+function installStarfield() {
+  const field = document.querySelector(".starfield");
+  if (!field || field.dataset.ready) return;
+  field.dataset.ready = "true";
+  const fragment = document.createDocumentFragment();
+  const starCount = window.matchMedia("(max-width: 760px)").matches ? 48 : 88;
+  const nebulaColors = ["var(--brand)", "var(--cosmic)", "var(--neon)"];
+
+  for (let i = 0; i < starCount; i += 1) {
+    const star = document.createElement("span");
+    const size = 1 + Math.random() * 2.4;
+    star.className = "star";
+    star.style.setProperty("--left", `${Math.random() * 100}%`);
+    star.style.setProperty("--top", `${Math.random() * 100}%`);
+    star.style.setProperty("--size", `${size}px`);
+    star.style.setProperty("--opacity", `${0.24 + Math.random() * 0.7}`);
+    star.style.setProperty("--duration", `${2.2 + Math.random() * 4.8}s`);
+    fragment.appendChild(star);
+  }
+
+  for (let i = 0; i < 9; i += 1) {
+    const particle = document.createElement("span");
+    const size = 110 + Math.random() * 180;
+    particle.className = "nebula-particle";
+    particle.style.setProperty("--left", `${Math.random() * 100}%`);
+    particle.style.setProperty("--top", `${Math.random() * 100}%`);
+    particle.style.setProperty("--size", `${size}px`);
+    particle.style.setProperty("--color", nebulaColors[i % nebulaColors.length]);
+    particle.style.setProperty("--duration", `${8 + Math.random() * 10}s`);
+    particle.style.setProperty("--drift-x", `${-22 + Math.random() * 44}px`);
+    particle.style.setProperty("--drift-y", `${-28 + Math.random() * 56}px`);
+    fragment.appendChild(particle);
+  }
+
+  field.appendChild(fragment);
+}
+
 function installInteractiveMotion() {
   let ticking = false;
   window.addEventListener("pointermove", (event) => {
@@ -72,8 +109,16 @@ function installInteractiveMotion() {
       const rect = card.getBoundingClientRect();
       const x = Math.round(((event.clientX - rect.left) / rect.width) * 100);
       const y = Math.round(((event.clientY - rect.top) / rect.height) * 100);
+      const tiltX = ((event.clientX - rect.left) / rect.width - 0.5) * 7;
+      const tiltY = ((event.clientY - rect.top) / rect.height - 0.5) * -5;
       card.style.setProperty("--card-x", `${x}%`);
       card.style.setProperty("--card-y", `${y}%`);
+      card.style.setProperty("--tilt-x", `${tiltX.toFixed(2)}deg`);
+      card.style.setProperty("--tilt-y", `${tiltY.toFixed(2)}deg`);
+    });
+    card.addEventListener("pointerleave", () => {
+      card.style.removeProperty("--tilt-x");
+      card.style.removeProperty("--tilt-y");
     });
   });
 }
@@ -241,5 +286,6 @@ async function renderHomeProgress() {
 
 document.addEventListener("DOMContentLoaded", () => {
   installThemeToggle();
+  installStarfield();
   installInteractiveMotion();
 });

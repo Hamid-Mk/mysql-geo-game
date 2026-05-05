@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL Atlas — Student Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page-login">
+  <div class="space-grid" aria-hidden="true"></div>
+  <div class="starfield" aria-hidden="true"></div>
+  <header class="app-header">
+    <a class="brand-lockup" href="index.html">
+      <img src="assets/sql-atlas-logo.svg" alt="" class="brand-mark">
+      <span class="brand-text">SQL Atlas</span>
+    </a>
+    <nav class="header-actions">
+      <a class="nav-link" href="index.html">Learning Dashboard</a>
+      <a class="nav-link teacher-link" href="admin_teacher.html">Teacher Portal</a>
+    </nav>
+  </header>
+
+  <main class="login-shell">
+    <section class="login-panel">
+      <img src="assets/sql-atlas-logo.svg" alt="SQL Atlas logo" class="login-logo">
+      <p class="eyebrow">Student access</p>
+      <h1>Save your SQL journey.</h1>
+      <p class="hero-copy">Create a local pilot profile to keep XP, streaks, hints, and level progress on this browser.</p>
+      <form id="student-login-form" class="login-form">
+        <label for="student-name">Student name</label>
+        <input id="student-name" name="student-name" type="text" minlength="2" maxlength="32" autocomplete="name" placeholder="Enter your name" required>
+        <button class="mission-button" type="submit">Enter SQL Atlas</button>
+      </form>
+      <button id="clear-student" class="link-button" type="button">Clear saved student profile</button>
+      <p id="login-message" class="form-message" role="status"></p>
+    </section>
+  </main>
+
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("student-login-form");
+      const input = document.getElementById("student-name");
+      const message = document.getElementById("login-message");
+      const existing = getStudent();
+      if (existing) input.value = existing.name;
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const student = loginStudent(input.value);
+        message.textContent = `Welcome, ${student.name}. Starting dashboard...`;
+        setTimeout(() => window.location.href = "index.html", 500);
+      });
+      document.getElementById("clear-student").addEventListener("click", () => {
+        localStorage.removeItem(STUDENT_STORAGE_KEY);
+        input.value = "";
+        message.textContent = "Local student profile cleared.";
+      });
+    });
+  </script>
+</body>
+</html>
