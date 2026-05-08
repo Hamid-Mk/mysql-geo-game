@@ -33,6 +33,7 @@
         <i></i>
         <span>☀️</span>
       </label>
+      <a class="nav-link leaderboard-link" href="leaderboard.html">🏆 Leaderboard</a>
       <button class="nav-link student-login-btn" type="button">Student Login</button>
       <a class="nav-link teacher-link" href="admin_teacher.html">Teacher</a>
       <span id="student-status" class="student-status"></span>
@@ -88,11 +89,11 @@
             <div><strong data-streak-label="Beginner">0</strong><span>Best streak</span></div>
           </div>
           <div class="progress-track"><span data-progress-bar="Beginner"></span></div>
-          <a class="mission-button" data-level-link="Beginner" href="quiz.html?id=1">Begin Mission</a>
+          <button class="mission-button card-cta" data-level-link="Beginner" type="button" onclick="startLevel('Beginner')">Begin Mission</button>
           <div class="locked-overlay" hidden></div>
         </article>
 
-        <article class="level-card navigator card-scanline glass-card" data-level-card="Intermediate" data-required-xp="500" data-start-id="29" style="--accent: var(--atlas-gold);">
+        <article class="level-card navigator card-scanline glass-card" data-level-card="Intermediate" data-required-xp="300" data-start-id="29" style="--accent: var(--atlas-gold);">
           <div class="level-icon css-shield" aria-hidden="true"></div>
           <div class="level-card-top">
             <span class="level-number">02</span>
@@ -112,11 +113,11 @@
             <div><strong data-streak-label="Intermediate">0</strong><span>Best streak</span></div>
           </div>
           <div class="progress-track"><span data-progress-bar="Intermediate"></span></div>
-          <a class="mission-button" data-level-link="Intermediate" href="quiz.html?id=29">Enter Zone</a>
+          <button class="mission-button card-cta" data-level-link="Intermediate" type="button" onclick="startLevel('Intermediate')">Enter Zone</button>
           <div class="locked-overlay" hidden></div>
         </article>
 
-        <article class="level-card architect card-scanline glass-card" data-level-card="Advanced" data-required-xp="2000" data-start-id="73" style="--accent: var(--atlas-pink);">
+        <article class="level-card architect card-scanline glass-card" data-level-card="Advanced" data-required-xp="800" data-start-id="73" style="--accent: var(--atlas-pink);">
           <div class="level-icon css-orb" aria-hidden="true"></div>
           <div class="level-card-top">
             <span class="level-number">03</span>
@@ -136,7 +137,7 @@
             <div><strong data-streak-label="Advanced">0</strong><span>Best streak</span></div>
           </div>
           <div class="progress-track"><span data-progress-bar="Advanced"></span></div>
-          <a class="mission-button" data-level-link="Advanced" href="quiz.html?id=73">Accept Challenge</a>
+          <button class="mission-button card-cta" data-level-link="Advanced" type="button" onclick="startLevel('Advanced')">Accept Challenge</button>
           <div class="locked-overlay" hidden></div>
         </article>
       </section>

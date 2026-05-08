@@ -65,6 +65,7 @@ function renderStudentModalContent(tab = "login") {
     document.getElementById("student-logout-btn").addEventListener("click", () => {
       studentLogout();
       renderHomeProgress?.();
+      refreshLevelCards?.();
       closeStudentModal();
     });
     return;
@@ -152,5 +153,6 @@ function finishAuth(result) {
   syncLegacyStudent(result.student);
   renderStudentHeader();
   renderHomeProgress?.();
+  refreshLevelCards?.();
   renderStudentModalContent();
 }

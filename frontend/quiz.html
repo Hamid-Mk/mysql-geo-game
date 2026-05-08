@@ -33,20 +33,24 @@
         <i></i>
         <span>☀️</span>
       </label>
-      <div id="streak-lives" class="streak-lives" aria-label="Streak lives">
-        <span class="life active">🛡️</span><span class="life active">🛡️</span><span class="life active">🛡️</span>
-      </div>
-      <span id="level-chip" class="status-chip">Beginner</span>
-      <span id="xp-chip" class="status-chip xp-status">0 XP</span>
-      <span id="streak-chip" class="status-chip">Streak 0</span>
-      <span id="mistake-chip" class="status-chip danger">Mistakes 0/3</span>
-      <span id="hint-chip" class="status-chip hint">💡 Hints: 5/5</span>
+      <a class="nav-link leaderboard-link" href="leaderboard.html">🏆 Leaderboard</a>
       <button id="sound-toggle" class="nav-link sound-toggle" type="button">Sound On</button>
       <button class="nav-link student-login-btn" type="button">Student Login</button>
       <a class="nav-link teacher-link" href="admin_teacher.html">Teacher</a>
       <span id="student-status" class="student-status"></span>
     </nav>
   </header>
+
+  <section class="quiz-stats-bar" aria-label="Mission progress">
+    <div id="streak-lives" class="streak-lives" aria-label="Streak lives">
+      <span class="life active">🛡️</span><span class="life active">🛡️</span><span class="life active">🛡️</span>
+    </div>
+    <span id="level-chip" class="status-chip">Beginner</span>
+    <span id="xp-chip" class="status-chip xp-status">0 XP</span>
+    <span id="streak-chip" class="status-chip">Streak 0</span>
+    <span id="mistake-chip" class="status-chip danger">Mistakes 0/3</span>
+    <span id="hint-chip" class="status-chip hint">💡 Hints: 5/5</span>
+  </section>
 
   <button id="schema-mobile-toggle" class="schema-mobile-toggle" type="button">Schema 📋</button>
   <main class="mission-layout">
@@ -71,7 +75,7 @@
     </aside>
     <button id="schema-restore" class="schema-restore" type="button">Schema</button>
 
-    <section class="mission-main">
+    <section class="mission-main panel-editor">
       <div class="mission-card question-card card-scanline glass-card">
         <div class="mission-meta">
           <span id="challenge-category">Loading</span>
@@ -109,7 +113,10 @@
       <section id="results-container" class="results-panel glass-card" hidden>
         <div class="results-header">
           <strong>Query Output</strong>
-          <span id="results-count">0 rows</span>
+          <div class="results-actions">
+            <span id="results-count">0 rows</span>
+            <button id="btn-continue-inline" class="mission-button result-continue" type="button" hidden>Continue →</button>
+          </div>
         </div>
         <div class="table-scroll">
           <table id="results-table">
@@ -137,11 +144,19 @@
   </main>
 
   <div id="feedback-drawer" class="feedback-drawer" role="status" aria-live="polite">
-    <div>
-      <strong id="feedback-title">Feedback</strong>
-      <p id="feedback-text"></p>
+    <div class="feedback-inner">
+      <div class="feedback-message">
+        <span id="feedback-icon" class="feedback-icon" aria-hidden="true">✓</span>
+        <div>
+          <strong id="feedback-title" class="feedback-title">Feedback</strong>
+          <p id="feedback-text" class="feedback-sub"></p>
+        </div>
+      </div>
+      <div class="feedback-actions">
+        <button id="feedback-secondary" class="feedback-secondary-btn" type="button">View Result</button>
+        <button id="feedback-action" class="feedback-action-btn" type="button">Continue</button>
+      </div>
     </div>
-    <button id="feedback-action" type="button">Continue</button>
   </div>
 
   <div id="hint-confirm" class="hint-confirm" hidden>

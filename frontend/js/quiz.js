@@ -12,6 +12,7 @@ let soundEnabled = localStorage.getItem(SOUND_STORAGE_KEY) !== "off";
 let audioContext = null;
 
 const MAX_SESSION_HINTS = 5;
+const TOTAL_CHALLENGES = 100;
 const els = {};
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -20,8 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
     "side-best-streak", "side-hints", "side-mistakes", "player-name", "challenge-category",
     "challenge-number", "question-text", "progress-label", "progress-fill", "sql-editor",
     "btn-hint", "btn-clear", "btn-run", "hint-box", "results-container", "results-count",
-    "results-thead", "results-tbody", "feedback-drawer", "feedback-title", "feedback-text",
-    "feedback-action", "streak-lives", "hint-confirm", "hint-confirm-text", "hint-confirm-yes",
+    "results-thead", "results-tbody", "feedback-drawer", "feedback-icon", "feedback-title", "feedback-text",
+    "feedback-action", "feedback-secondary", "btn-continue-inline", "streak-lives", "hint-confirm", "hint-confirm-text", "hint-confirm-yes",
     "hint-confirm-no", "streak-modal", "lost-streak", "streak-try-again", "sound-toggle",
     "line-numbers", "char-count", "syntax-preview", "schema-mobile-toggle", "schema-panel",
     "schema-collapse", "schema-restore", "editor-container"
@@ -42,8 +43,20 @@ function bindEvents() {
   });
   els["hint-confirm-no"].addEventListener("click", () => { els["hint-confirm"].hidden = true; });
   els["feedback-action"].addEventListener("click", () => {
-    hideFeedback();
-    if (els["feedback-action"].dataset.next === "true") goNext();
+    const shouldAdvance = els["feedback-action"].dataset.next === "true";
+    hideDrawers();
+    if (shouldAdvance) goNext();
+    else els["sql-editor"].focus();
+  });
+  els["feedback-secondary"].addEventListener("click", () => {
+    hideDrawers();
+    const target = els["results-container"].hidden ? els["sql-editor"] : els["results-container"];
+    target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (els["results-container"].hidden) els["sql-editor"].focus();
+  });
+  els["btn-continue-inline"].addEventListener("click", () => {
+    hideDrawers();
+    goNext();
   });
   els["sql-editor"].addEventListener("keydown", (event) => {
     if (event.ctrlKey && event.key === "Enter") runQuery();
@@ -71,11 +84,18 @@ async function loadChallengeFromUrl() {
     const challenge = allChallenges.find((item) => Number(item.id) === idParam);
     currentLevel = challenge ? levelFromChallenge(challenge) : levelForId(idParam);
     levelChallenges = allChallenges.filter((item) => levelFromChallenge(item) === currentLevel);
-    currentIndex = Math.max(0, levelChallenges.findIndex((item) => Number(item.id) === idParam));
+    const completedIds = getCurrentStudent()?.completedChallenges || student.completedChallengeIds || [];
+    const completed = new Set((completedIds || []).map(Number));
+    const resumeId = nextLevelChallengeId(currentLevel, completedIds);
+    const shouldResume = getParam("review") !== "1" && completed.has(idParam) && resumeId !== idParam;
+    const targetId = shouldResume ? resumeId : idParam;
+    currentIndex = Math.max(0, levelChallenges.findIndex((item) => Number(item.id) === Number(targetId)));
   } else {
     currentLevel = LEVELS[getParam("level")] ? getParam("level") : currentLevel;
     levelChallenges = allChallenges.filter((item) => levelFromChallenge(item) === currentLevel);
-    currentIndex = Math.min(student.currentChallengeByLevel[currentLevel] || 0, levelChallenges.length - 1);
+    const completedIds = getCurrentStudent()?.completedChallenges || student.completedChallengeIds || [];
+    const resumeId = nextLevelChallengeId(currentLevel, completedIds);
+    currentIndex = Math.max(0, levelChallenges.findIndex((item) => Number(item.id) === Number(resumeId)));
   }
 
   if (!levelChallenges.length) {
@@ -86,7 +106,7 @@ async function loadChallengeFromUrl() {
 }
 
 async function loadChallenge(id) {
-  hideFeedback();
+  hideDrawers();
   hintUsedForChallenge = false;
   const localIndex = levelChallenges.findIndex((challenge) => Number(challenge.id) === Number(id));
   if (localIndex >= 0) currentIndex = localIndex;
@@ -99,6 +119,7 @@ async function loadChallenge(id) {
   els["hint-box"].hidden = true;
   els["hint-box"].textContent = "";
   els["results-container"].hidden = true;
+  els["btn-continue-inline"].hidden = true;
   els["challenge-category"].textContent = currentChallenge.category || currentLevel;
   els["challenge-number"].textContent = `Q.${currentChallenge.id} / 100`;
   typeWriter(els["question-text"], currentChallenge.question_text, 12);
@@ -193,14 +214,17 @@ function finishRunButton() {
 
 function handleCorrect(rowCount) {
   const current = getCurrentStudent();
+  const numericChallengeId = Number(currentChallenge.id);
+  const currentCompleted = (current?.completedChallenges || []).map(Number);
+  const legacyCompleted = (student.completedChallengeIds || []).map(Number);
   const alreadyComplete = current
-    ? current.completedChallenges.includes(currentChallenge.id)
-    : student.completedChallengeIds.includes(currentChallenge.id);
+    ? currentCompleted.includes(numericChallengeId)
+    : legacyCompleted.includes(numericChallengeId);
   const reward = alreadyComplete ? 0 : Math.max(20, rewardForCurrentQuestion() - (hintUsedForChallenge ? 30 : 0));
   consecutiveWrong = 0;
 
-  if (current) updateStudentXP(reward, currentChallenge.id);
-  if (!alreadyComplete) student.completedChallengeIds.push(currentChallenge.id);
+  if (current) updateStudentXP(reward, numericChallengeId);
+  if (!alreadyComplete) student.completedChallengeIds.push(numericChallengeId);
   student.totalXP += reward;
   student.currentStreak += 1;
   student.mistakeStreak = 0;
@@ -215,11 +239,13 @@ function handleCorrect(rowCount) {
   triggerPageFeedback("correct");
   document.querySelector(".question-card")?.classList.add("card-bounce");
   setTimeout(() => document.querySelector(".question-card")?.classList.remove("card-bounce"), 550);
-  showFeedback("correct", `✓ CORRECT! +${reward} XP`, `You returned ${rowCount} rows.`, currentIndex < levelChallenges.length - 1);
+  showCorrectDrawer(reward, currentChallenge.id, currentIndex < levelChallenges.length - 1);
+  els["btn-continue-inline"].hidden = currentIndex >= levelChallenges.length - 1;
 }
 
 function handleWrong(message) {
   consecutiveWrong += 1;
+  els["btn-continue-inline"].hidden = true;
   streakLives = Math.max(0, streakLives - 1);
   studentWrongAnswer();
   renderLives();
@@ -243,7 +269,7 @@ function handleWrong(message) {
   student = saveStudent(student);
   renderStats();
   const hintPrompt = Math.max(0, MAX_SESSION_HINTS - sessionHintsUsed) > 0 ? " You can use a hint if you are stuck." : "";
-  showFeedback("incorrect", "✗ INCORRECT", `${message}${hintPrompt}`, false);
+  showWrongDrawer(`${message}${hintPrompt}`);
 }
 
 function requestHintConfirmation() {
@@ -281,7 +307,7 @@ function goNext() {
     loadChallenge(levelChallenges[currentIndex].id);
   } else {
     playLevelUp();
-    showFeedback("correct", "Level complete", `${currentLevel} is complete. Choose another level from the dashboard.`, false);
+    showFeedback("correct", "LEVEL COMPLETE", `${currentLevel} is complete. Choose another level from the dashboard.`, false);
   }
 }
 
@@ -309,15 +335,33 @@ function renderResults(columns = [], rows = [], count = 0) {
 }
 
 function showFeedback(type, title, text, canContinue) {
-  els["feedback-drawer"].className = `feedback-drawer is-visible ${type}`;
+  const cleanType = type === "incorrect" ? "wrong" : type;
+  els["feedback-drawer"].className = `feedback-drawer visible ${cleanType}`;
+  els["feedback-icon"].textContent = cleanType === "correct" ? "✓" : cleanType === "wrong" ? "✗" : "!";
   els["feedback-title"].textContent = title;
   els["feedback-text"].textContent = text;
-  els["feedback-action"].textContent = canContinue ? "NEXT QUEST →" : "TRY AGAIN";
+  els["feedback-action"].textContent = canContinue ? "CONTINUE →" : "TRY AGAIN";
   els["feedback-action"].dataset.next = canContinue ? "true" : "false";
+  els["feedback-secondary"].hidden = !canContinue;
+  els["feedback-secondary"].textContent = "VIEW RESULT";
 }
 
 function hideFeedback() {
-  els["feedback-drawer"].classList.remove("is-visible");
+  hideDrawers();
+}
+
+function showCorrectDrawer(xpGained, challengeNum, canContinue = true) {
+  showFeedback("correct", "CORRECT!", `+${xpGained} XP · Quest ${challengeNum} of ${TOTAL_CHALLENGES}`, canContinue);
+}
+
+function showWrongDrawer(message = "") {
+  const livesRemaining = Math.max(0, streakLives);
+  const livesText = livesRemaining === 1 ? "1 shield remaining." : `${livesRemaining} shields remaining.`;
+  showFeedback("wrong", "NOT QUITE", `Check your query and try again. ${livesText}${message ? ` ${message}` : ""}`, false);
+}
+
+function hideDrawers() {
+  document.querySelectorAll(".feedback-drawer").forEach((drawer) => drawer.classList.remove("visible"));
 }
 
 function showModal(title, subText) {

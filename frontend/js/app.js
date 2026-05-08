@@ -5,8 +5,8 @@ const SOUND_STORAGE_KEY = "atlas_sound";
 
 const LEVELS = {
   Beginner: { total: 28, hints: 5, reward: 100, startId: 1, requiredXP: 0 },
-  Intermediate: { total: 44, hints: 5, reward: 150, startId: 29, requiredXP: 500 },
-  Advanced: { total: 28, hints: 5, reward: 200, startId: 73, requiredXP: 2000 },
+  Intermediate: { total: 44, hints: 5, reward: 150, startId: 29, requiredXP: 300 },
+  Advanced: { total: 28, hints: 5, reward: 200, startId: 73, requiredXP: 800 },
 };
 
 async function api(path, method = "GET", body = null, extraHeaders = {}) {
@@ -39,7 +39,15 @@ function saveStudents(data) {
 function getCurrentStudent() {
   const username = localStorage.getItem("atlas_current_student");
   if (!username) return null;
-  return getStudents()[username] || null;
+  const students = getStudents();
+  const student = students[username];
+  if (!student) return null;
+  const normalized = normalizeRegisteredStudent(student);
+  if (JSON.stringify(student) !== JSON.stringify(normalized)) {
+    students[username] = normalized;
+    saveStudents(students);
+  }
+  return normalized;
 }
 
 function studentLogin(username, password) {
@@ -48,6 +56,7 @@ function studentLogin(username, password) {
   if (!students[cleanUsername]) return { ok: false, error: "Username not found." };
   if (students[cleanUsername].password !== password) return { ok: false, error: "Wrong password." };
   localStorage.setItem("atlas_current_student", cleanUsername);
+  students[cleanUsername] = normalizeRegisteredStudent(students[cleanUsername]);
   students[cleanUsername].lastLogin = todayString();
   saveStudents(students);
   return { ok: true, student: students[cleanUsername] };
@@ -69,6 +78,7 @@ function studentRegister(username, displayName, password) {
     streak: 0,
     longestStreak: 0,
     completedChallenges: [],
+    currentChallengeByLevel: { Beginner: 1, Intermediate: 29, Advanced: 73 },
     hintsUsed: 0,
     totalCorrect: 0,
     totalAttempts: 0,
@@ -90,17 +100,28 @@ function updateStudentXP(xpGained, challengeId) {
   const students = getStudents();
   const student = students[username];
   if (!student) return;
-  student.xp += xpGained;
-  student.totalCorrect += 1;
-  student.totalAttempts += 1;
-  if (!student.completedChallenges.includes(challengeId)) student.completedChallenges.push(challengeId);
-  student.streak += 1;
-  if (student.streak > student.longestStreak) student.longestStreak = student.streak;
-  if (student.xp >= 5000) student.level = "Advanced";
-  else if (student.xp >= 1500) student.level = "Intermediate";
-  else student.level = "Beginner";
+  students[username] = normalizeRegisteredStudent(student);
+  const normalizedStudent = students[username];
+  const numericChallengeId = Number(challengeId);
+  normalizedStudent.xp += xpGained;
+  normalizedStudent.totalCorrect += 1;
+  normalizedStudent.totalAttempts += 1;
+  if (!normalizedStudent.completedChallenges.includes(numericChallengeId)) normalizedStudent.completedChallenges.push(numericChallengeId);
+  normalizedStudent.currentChallengeByLevel = {
+    Beginner: 1,
+    Intermediate: 29,
+    Advanced: 73,
+    ...(normalizedStudent.currentChallengeByLevel || {}),
+  };
+  const completedLevel = levelNameForChallengeId(numericChallengeId);
+  normalizedStudent.currentChallengeByLevel[completedLevel] = nextLevelChallengeId(completedLevel, normalizedStudent.completedChallenges);
+  normalizedStudent.streak += 1;
+  if (normalizedStudent.streak > normalizedStudent.longestStreak) normalizedStudent.longestStreak = normalizedStudent.streak;
+  if (normalizedStudent.xp >= 5000) normalizedStudent.level = "Advanced";
+  else if (normalizedStudent.xp >= 1500) normalizedStudent.level = "Intermediate";
+  else normalizedStudent.level = "Beginner";
   saveStudents(students);
-  syncLegacyStudent(student);
+  syncLegacyStudent(normalizedStudent);
   renderStudentHeader();
 }
 
@@ -171,6 +192,32 @@ function normalizeStudent(student) {
   merged.hintsByLevel = { ...base.hintsByLevel, ...(student?.hintsByLevel || {}) };
   merged.completedChallengeIds = Array.isArray(student?.completedChallengeIds) ? student.completedChallengeIds : [];
   return merged;
+}
+
+function normalizeRegisteredStudent(student) {
+  const completed = Array.isArray(student.completedChallenges)
+    ? student.completedChallenges.map(Number).filter((id) => Number.isFinite(id))
+    : [];
+  const uniqueCompleted = [...new Set(completed)];
+  return {
+    username: student.username,
+    displayName: student.displayName || student.username || "Student",
+    password: student.password || "",
+    xp: Number(student.xp || 0),
+    level: student.level || "Beginner",
+    streak: Number(student.streak || 0),
+    longestStreak: Number(student.longestStreak || 0),
+    completedChallenges: uniqueCompleted,
+    currentChallengeByLevel: {
+      Beginner: nextLevelChallengeId("Beginner", uniqueCompleted),
+      Intermediate: nextLevelChallengeId("Intermediate", uniqueCompleted),
+      Advanced: nextLevelChallengeId("Advanced", uniqueCompleted),
+    },
+    hintsUsed: Number(student.hintsUsed || 0),
+    totalCorrect: Number(student.totalCorrect || 0),
+    totalAttempts: Number(student.totalAttempts || 0),
+    lastLogin: student.lastLogin || todayString(),
+  };
 }
 
 function getStudent() {
@@ -295,9 +342,9 @@ function initGlowCursor() {
 function initPageTransitions() {
   document.body.classList.add("page-enter");
   document.querySelectorAll("a[href]").forEach((link) => {
-    const href = link.getAttribute("href");
-    if (!href || href.startsWith("#") || href.startsWith("http")) return;
     link.addEventListener("click", (event) => {
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#") || href.startsWith("http")) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
       document.body.classList.add("page-exit");
@@ -390,7 +437,8 @@ async function renderHomeProgress() {
   const student = getCurrentStudent();
   const legacyStudent = ensureStudent();
   const xp = student ? student.xp : legacyStudent.totalXP;
-  const completedIds = student ? student.completedChallenges : legacyStudent.completedChallengeIds;
+  const unlockXP = student ? student.xp : 0;
+  const completedIds = (student ? student.completedChallenges : legacyStudent.completedChallengeIds).map(Number);
   const bestStreak = student ? student.longestStreak : Math.max(...Object.values(legacyStudent.bestStreakByLevel));
   const homeXp = document.getElementById("home-xp");
   const continueButton = document.getElementById("continue-journey");
@@ -413,7 +461,7 @@ async function renderHomeProgress() {
   Object.keys(LEVELS).forEach((level) => {
     const levelChallenges = challenges.filter((challenge) => levelFromChallenge(challenge) === level);
     const total = levelChallenges.length || LEVELS[level].total;
-    const completed = levelChallenges.filter((challenge) => completedIds.includes(challenge.id)).length;
+    const completed = levelChallenges.filter((challenge) => completedIds.includes(Number(challenge.id))).length;
     const pct = total ? Math.round((completed / total) * 100) : 0;
     const label = document.querySelector(`[data-progress-label="${level}"]`);
     const bar = document.querySelector(`[data-progress-bar="${level}"]`);
@@ -421,17 +469,35 @@ async function renderHomeProgress() {
     const card = document.querySelector(`[data-level-card="${level}"]`);
     const link = document.querySelector(`[data-level-link="${level}"]`);
     const required = LEVELS[level].requiredXP;
-    const locked = xp < required;
+    const locked = required > 0 && unlockXP < required;
     if (label) label.textContent = `${pct}%`;
     if (bar) bar.style.width = `${pct}%`;
     if (streak) streak.textContent = bestStreak || 0;
     if (link) {
-      link.href = `quiz.html?id=${LEVELS[level].startId}`;
+      link.dataset.quizUrl = `quiz.html?id=${LEVELS[level].startId}`;
       link.classList.toggle("disabled", locked);
       link.setAttribute("aria-disabled", String(locked));
+      link.disabled = locked;
+      link.onclick = locked ? null : () => startLevel(level);
     }
-    if (card) renderLockedState(card, locked, xp, required);
+    if (card) renderLockedState(card, locked, unlockXP, required);
   });
+}
+
+function refreshLevelCards() {
+  renderHomeProgress();
+}
+
+function startLevel(levelId) {
+  const level = LEVELS[levelId];
+  if (!level) return;
+  const current = getCurrentStudent();
+  const xp = current?.xp ?? 0;
+  if (level.requiredXP > 0 && xp < level.requiredXP) return;
+  const legacy = current ? null : ensureStudent();
+  const completedIds = current?.completedChallenges || legacy?.completedChallengeIds || [];
+  const resumeId = nextLevelChallengeId(levelId, completedIds);
+  window.location.href = `quiz.html?id=${resumeId}`;
 }
 
 function renderLockedState(card, locked, xp, required) {
@@ -447,17 +513,39 @@ function renderLockedState(card, locked, xp, required) {
   const pct = required ? Math.min(100, Math.round((xp / required) * 100)) : 100;
   overlay.innerHTML = `
     <div class="lock-icon">🔒</div>
-    <strong>Unlock at ${required.toLocaleString()} XP</strong>
-    <span>You have ${xp.toLocaleString()} XP</span>
+    <strong>Unlock at ${required.toLocaleString()} XP — you have ${xp.toLocaleString()} XP</strong>
     <div class="lock-progress"><i style="width:${pct}%"></i></div>
   `;
 }
 
 function nextChallengeId(completedIds) {
+  const completed = new Set((completedIds || []).map(Number));
   for (let id = 1; id <= 100; id += 1) {
-    if (!completedIds.includes(id)) return id;
+    if (!completed.has(id)) return id;
   }
   return 1;
+}
+
+function levelNameForChallengeId(id) {
+  const numericId = Number(id);
+  if (numericId >= LEVELS.Advanced.startId) return "Advanced";
+  if (numericId >= LEVELS.Intermediate.startId) return "Intermediate";
+  return "Beginner";
+}
+
+function levelEndId(levelId) {
+  if (levelId === "Beginner") return LEVELS.Intermediate.startId - 1;
+  if (levelId === "Intermediate") return LEVELS.Advanced.startId - 1;
+  return 100;
+}
+
+function nextLevelChallengeId(levelId, completedIds = []) {
+  const level = LEVELS[levelId] || LEVELS.Beginner;
+  const completed = new Set((completedIds || []).map(Number));
+  for (let id = level.startId; id <= levelEndId(levelId); id += 1) {
+    if (!completed.has(id)) return id;
+  }
+  return level.startId;
 }
 
 function animateCounters() {
