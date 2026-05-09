@@ -1,4 +1,7 @@
-const API_BASE_URL = "http://localhost:8000/api";
+const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const API_BASE_URL = IS_LOCAL 
+  ? "http://localhost:8000/api" 
+  : "https://<YOUR_VERCEL_APP_URL>/api"; // You will replace this with your Vercel URL
 const STUDENT_STORAGE_KEY = "sql_atlas_student";
 const THEME_STORAGE_KEY = "theme";
 const SOUND_STORAGE_KEY = "atlas_sound";

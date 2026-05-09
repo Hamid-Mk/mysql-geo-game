@@ -104,27 +104,14 @@
         </div>
         <div id="hint-box" class="hint-box" hidden></div>
         <div class="terminal-actions">
+          <button id="btn-prev" class="nav-prev-btn" type="button" disabled title="Review previous question"><span class="arrow">←</span> Previous</button>
+          <button id="btn-next" class="nav-next-btn" type="button" disabled title="Go to next question">Next <span class="arrow">→</span></button>
           <button id="btn-hint" class="secondary-button" type="button">Use Hint</button>
           <button id="btn-clear" class="secondary-button" type="button">Clear</button>
           <button id="btn-run" class="mission-button" type="button">Run Query</button>
         </div>
       </div>
 
-      <section id="results-container" class="results-panel glass-card" hidden>
-        <div class="results-header">
-          <strong>Query Output</strong>
-          <div class="results-actions">
-            <span id="results-count">0 rows</span>
-            <button id="btn-continue-inline" class="mission-button result-continue" type="button" hidden>Continue →</button>
-          </div>
-        </div>
-        <div class="table-scroll">
-          <table id="results-table">
-            <thead id="results-thead"></thead>
-            <tbody id="results-tbody"></tbody>
-          </table>
-        </div>
-      </section>
     </section>
 
     <aside class="player-panel glass-card">
@@ -142,6 +129,32 @@
       <a class="secondary-button full-width" href="index.html">Return to Base</a>
     </aside>
   </main>
+
+  <!-- Data Viewport Modal -->
+  <div id="data-viewport" class="data-viewport" hidden>
+    <div class="data-viewport-backdrop"></div>
+    <div class="data-viewport-panel">
+      <div class="data-viewport-header">
+        <div class="data-viewport-title">
+          <span class="data-viewport-icon">📡</span>
+          <strong>SCAN RESULTS</strong>
+          <span id="viewport-row-count" class="data-viewport-count">0 rows</span>
+        </div>
+        <div class="data-viewport-actions">
+          <button id="viewport-continue" class="mission-button result-continue" type="button" hidden>Continue →</button>
+          <button id="viewport-close" class="data-viewport-close" type="button" aria-label="Close results">✕</button>
+        </div>
+      </div>
+      <div class="data-viewport-body">
+        <div class="table-scroll">
+          <table id="results-table">
+            <thead id="results-thead"></thead>
+            <tbody id="results-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div id="feedback-drawer" class="feedback-drawer" role="status" aria-live="polite">
     <div class="feedback-inner">

@@ -5,6 +5,7 @@ let levelChallenges = [];
 let currentIndex = 0;
 let currentChallenge = null;
 let hintUsedForChallenge = false;
+let isReviewMode = false;
 let consecutiveWrong = 0;
 let streakLives = 3;
 let sessionHintsUsed = Number(sessionStorage.getItem("atlas_session_hints_used") || "0");
@@ -20,12 +21,13 @@ document.addEventListener("DOMContentLoaded", () => {
     "level-chip", "xp-chip", "streak-chip", "mistake-chip", "hint-chip", "side-xp", "side-streak",
     "side-best-streak", "side-hints", "side-mistakes", "player-name", "challenge-category",
     "challenge-number", "question-text", "progress-label", "progress-fill", "sql-editor",
-    "btn-hint", "btn-clear", "btn-run", "hint-box", "results-container", "results-count",
+    "btn-hint", "btn-clear", "btn-run", "hint-box",
     "results-thead", "results-tbody", "feedback-drawer", "feedback-icon", "feedback-title", "feedback-text",
-    "feedback-action", "feedback-secondary", "btn-continue-inline", "streak-lives", "hint-confirm", "hint-confirm-text", "hint-confirm-yes",
+    "feedback-action", "feedback-secondary", "streak-lives", "hint-confirm", "hint-confirm-text", "hint-confirm-yes",
     "hint-confirm-no", "streak-modal", "lost-streak", "streak-try-again", "sound-toggle",
     "line-numbers", "char-count", "syntax-preview", "schema-mobile-toggle", "schema-panel",
-    "schema-collapse", "schema-restore", "editor-container"
+    "schema-collapse", "schema-restore", "editor-container", "btn-prev", "btn-next",
+    "data-viewport", "viewport-row-count", "viewport-continue", "viewport-close"
   ].forEach((id) => els[id] = document.getElementById(id));
 
   renderStudentHeader();
@@ -50,13 +52,17 @@ function bindEvents() {
   });
   els["feedback-secondary"].addEventListener("click", () => {
     hideDrawers();
-    const target = els["results-container"].hidden ? els["sql-editor"] : els["results-container"];
-    target.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    if (els["results-container"].hidden) els["sql-editor"].focus();
+    openDataViewport();
   });
-  els["btn-continue-inline"].addEventListener("click", () => {
+  els["viewport-close"].addEventListener("click", closeDataViewport);
+  els["viewport-continue"].addEventListener("click", () => {
+    closeDataViewport();
     hideDrawers();
     goNext();
+  });
+  // Close on backdrop click
+  els["data-viewport"].addEventListener("click", (event) => {
+    if (event.target.classList.contains("data-viewport-backdrop")) closeDataViewport();
   });
   els["sql-editor"].addEventListener("keydown", (event) => {
     if (event.ctrlKey && event.key === "Enter") runQuery();
@@ -67,6 +73,8 @@ function bindEvents() {
   els["schema-mobile-toggle"].addEventListener("click", () => els["schema-panel"].classList.toggle("open"));
   els["schema-collapse"].addEventListener("click", () => document.body.classList.add("schema-collapsed"));
   els["schema-restore"].addEventListener("click", () => document.body.classList.remove("schema-collapsed"));
+  if (els["btn-prev"]) els["btn-prev"].addEventListener("click", goPrev);
+  if (els["btn-next"]) els["btn-next"].addEventListener("click", () => { goNext(); });
   updateSoundButton();
   updateEditorAssist();
 }
@@ -118,8 +126,8 @@ async function loadChallenge(id) {
   els["sql-editor"].value = "";
   els["hint-box"].hidden = true;
   els["hint-box"].textContent = "";
-  els["results-container"].hidden = true;
-  els["btn-continue-inline"].hidden = true;
+  closeDataViewport();
+  els["viewport-continue"].hidden = true;
   els["challenge-category"].textContent = currentChallenge.category || currentLevel;
   els["challenge-number"].textContent = `Q.${currentChallenge.id} / 100`;
   typeWriter(els["question-text"], currentChallenge.question_text, 12);
@@ -127,6 +135,7 @@ async function loadChallenge(id) {
   history.replaceState(null, "", `quiz.html?id=${currentChallenge.id}`);
   updateEditorAssist();
   renderStats();
+  updatePrevButton();
 }
 
 function typeWriter(element, text, speed = 12) {
@@ -240,12 +249,13 @@ function handleCorrect(rowCount) {
   document.querySelector(".question-card")?.classList.add("card-bounce");
   setTimeout(() => document.querySelector(".question-card")?.classList.remove("card-bounce"), 550);
   showCorrectDrawer(reward, currentChallenge.id, currentIndex < levelChallenges.length - 1);
-  els["btn-continue-inline"].hidden = currentIndex >= levelChallenges.length - 1;
+  els["viewport-continue"].hidden = currentIndex >= levelChallenges.length - 1;
+  updatePrevButton();
 }
 
 function handleWrong(message) {
   consecutiveWrong += 1;
-  els["btn-continue-inline"].hidden = true;
+  els["viewport-continue"].hidden = true;
   streakLives = Math.max(0, streakLives - 1);
   studentWrongAnswer();
   renderLives();
@@ -297,11 +307,37 @@ function useHint() {
 function goPrev() {
   if (currentIndex > 0) {
     currentIndex -= 1;
+    isReviewMode = true;
     loadChallenge(levelChallenges[currentIndex].id);
   }
 }
 
+function updatePrevButton() {
+  if (!els["btn-prev"]) return;
+  els["btn-prev"].disabled = currentIndex <= 0;
+  // Update Next button
+  if (els["btn-next"]) {
+    const numericId = Number(currentChallenge?.id);
+    const current = getCurrentStudent();
+    const completedIds = (current?.completedChallenges || student?.completedChallengeIds || []).map(Number);
+    const alreadyDone = completedIds.includes(numericId);
+    // Next enabled if: current question is already completed AND not the last question
+    els["btn-next"].disabled = !alreadyDone || currentIndex >= levelChallenges.length - 1;
+  }
+  // Show review badge when in review mode
+  const numericId = Number(currentChallenge?.id);
+  const current = getCurrentStudent();
+  const completedIds = (current?.completedChallenges || student?.completedChallengeIds || []).map(Number);
+  const alreadyDone = completedIds.includes(numericId);
+  if (alreadyDone && isReviewMode) {
+    els["btn-prev"].title = "Reviewing — no XP awarded";
+  } else {
+    els["btn-prev"].title = "Review previous question";
+  }
+}
+
 function goNext() {
+  isReviewMode = false;
   if (currentIndex < levelChallenges.length - 1) {
     currentIndex += 1;
     loadChallenge(levelChallenges[currentIndex].id);
@@ -330,8 +366,18 @@ function renderResults(columns = [], rows = [], count = 0) {
     });
     els["results-tbody"].appendChild(tr);
   });
-  els["results-count"].textContent = `${count} rows${count > 100 ? " shown as first 100" : ""}`;
-  els["results-container"].hidden = false;
+  els["viewport-row-count"].textContent = `${count} rows${count > 100 ? " (showing first 100)" : ""}`;
+  openDataViewport();
+}
+
+function openDataViewport() {
+  els["data-viewport"].hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closeDataViewport() {
+  els["data-viewport"].hidden = true;
+  document.body.style.overflow = "";
 }
 
 function showFeedback(type, title, text, canContinue) {

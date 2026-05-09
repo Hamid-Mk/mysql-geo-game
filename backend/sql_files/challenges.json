@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "question_text": "Show the population of France.",
+    "difficulty": "easy",
+    "hint": "Use WHERE name = to filter by country name."
+  },
+  {
+    "id": 2,
+    "question_text": "Show the name and capital of Germany.",
+    "difficulty": "easy",
+    "hint": "Select the columns you need: name and capital."
+  },
+  {
+    "id": 3,
+    "question_text": "List all countries in Asia.",
+    "difficulty": "easy",
+    "hint": "Filter by the continent column."
+  },
+  {
+    "id": 4,
+    "question_text": "Show the area and population of Brazil.",
+    "difficulty": "easy",
+    "hint": "You need two columns: area and population."
+  },
+  {
+    "id": 5,
+    "question_text": "Show all details of Australia.",
+    "difficulty": "easy",
+    "hint": "Use * to select all columns."
+  },
+  {
+    "id": 6,
+    "question_text": "How many countries are in the database?",
+    "difficulty": "easy",
+    "hint": "Use COUNT(*) to count rows."
+  },
+  {
+    "id": 7,
+    "question_text": "Show the name and continent of all countries, ordered alphabetically by name.",
+    "difficulty": "easy",
+    "hint": "Use ORDER BY column ASC to sort A→Z."
+  },
+  {
+    "id": 8,
+    "question_text": "Show the name and population of Sweden, Norway and Denmark.",
+    "difficulty": "medium",
+    "hint": "Use WHERE name IN (...) to match a list of values."
+  },
+  {
+    "id": 9,
+    "question_text": "List countries with a population between 50 million and 100 million.",
+    "difficulty": "medium",
+    "hint": "Use BETWEEN low AND high for range checks."
+  },
+  {
+    "id": 10,
+    "question_text": "Show the 5 most populated countries.",
+    "difficulty": "medium",
+    "hint": "Sort DESC (largest first) and use LIMIT."
+  },
+  {
+    "id": 11,
+    "question_text": "Show the name and area of countries with area greater than 3,000,000 km², ordered by area descending.",
+    "difficulty": "medium",
+    "hint": "Combine WHERE and ORDER BY."
+  },
+  {
+    "id": 12,
+    "question_text": "How many countries are there on each continent? Show continent and count.",
+    "difficulty": "medium",
+    "hint": "Use GROUP BY continent and COUNT(*)."
+  },
+  {
+    "id": 13,
+    "question_text": "Show all cities in France.",
+    "difficulty": "medium",
+    "hint": "JOIN cities with countries on country_id."
+  },
+  {
+    "id": 14,
+    "question_text": "Show the total population of all countries in Europe.",
+    "difficulty": "medium",
+    "hint": "Use SUM() to add up all values in a column."
+  },
+  {
+    "id": 15,
+    "question_text": "List all countries and their official language(s).",
+    "difficulty": "hard",
+    "hint": "You need two JOINs: countries → country_languages → languages."
+  },
+  {
+    "id": 16,
+    "question_text": "Show all cities with a population greater than 5 million, along with their country name.",
+    "difficulty": "hard",
+    "hint": "JOIN cities and countries, then filter on cities.population."
+  },
+  {
+    "id": 17,
+    "question_text": "Which continent has the highest total GDP? Show the continent and total GDP.",
+    "difficulty": "hard",
+    "hint": "Use SUM(gdp), GROUP BY continent, then LIMIT 1 to get only the top."
+  },
+  {
+    "id": 18,
+    "question_text": "List countries that have more than one official language.",
+    "difficulty": "hard",
+    "hint": "Use GROUP BY + HAVING COUNT(...) > 1."
+  },
+  {
+    "id": 19,
+    "question_text": "Show the name and length of the top 3 longest rivers.",
+    "difficulty": "hard",
+    "hint": "Use ORDER BY length_km DESC and LIMIT 3."
+  },
+  {
+    "id": 20,
+    "question_text": "List all capital cities and their population, ordered by population descending.",
+    "difficulty": "hard",
+    "hint": "Filter WHERE is_capital = TRUE, then JOIN to get the country name."
+  }
+]
