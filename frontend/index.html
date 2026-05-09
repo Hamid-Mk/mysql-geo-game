@@ -3,76 +3,158 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SQL Atlas — Learning Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <title>SQL Atlas — Query the World</title>
+  <script>
+    (function () {
+      var theme = localStorage.getItem("theme") || "dark";
+      document.documentElement.dataset.initialTheme = theme;
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="page-home">
-  <div class="space-grid" aria-hidden="true"></div>
+  <script>document.body.classList.add((localStorage.getItem("theme") || "dark") === "light" ? "light-mode" : "dark-mode");</script>
+  <div class="sci-fi-grid" aria-hidden="true"></div>
   <header class="app-header">
     <a class="brand-lockup" href="index.html" aria-label="SQL Atlas home">
-      <img src="assets/sql-atlas-logo.svg" alt="" class="brand-mark">
-      <span class="brand-text">SQL Atlas</span>
+      <img src="assets/logo.svg" alt="SQL Atlas logo" class="logo-img brand-mark" />
+      <span class="brand-text">SQL ATLAS</span>
     </a>
-    <nav class="header-actions">
-      <a class="nav-link teacher-link" href="admin_teacher.html">Teacher Portal</a>
+    <button class="hamburger" type="button" aria-label="Open navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="nav-links header-actions">
+      <label class="theme-switch" title="Toggle light and dark mode">
+        <span>🌙</span>
+        <input id="theme-toggle" type="checkbox" aria-label="Toggle light mode" />
+        <i></i>
+        <span>☀️</span>
+      </label>
+      <a class="nav-link leaderboard-link" href="leaderboard.html">🏆 Leaderboard</a>
+      <button class="nav-link student-login-btn" type="button">Student Login</button>
+      <a class="nav-link teacher-link" href="admin_teacher.html">Teacher</a>
       <span id="student-status" class="student-status"></span>
     </nav>
   </header>
-  <main class="dashboard-shell">
-    <section class="dashboard-hero" aria-labelledby="dashboard-title">
-      <div>
-        <p class="eyebrow">Interactive SQL learning</p>
-        <h1 id="dashboard-title">Choose your SQL level.</h1>
-        <p class="hero-copy">Practice SQL with real geography data, clear levels, saved progress, streaks, and helpful hints.</p>
+
+  <main>
+    <section class="home-hero">
+      <div class="hero-blobs" aria-hidden="true">
+        <span class="blob blob-purple"></span>
+        <span class="blob blob-cyan"></span>
+        <span class="blob blob-blue"></span>
       </div>
-      <div class="hero-console" aria-label="Player summary">
-        <span class="console-label">Student Progress</span>
-        <strong id="home-player-name">Guest explorer</strong>
-        <div class="mini-stat-grid">
-          <span><b id="home-xp">0</b> XP</span>
-          <span><b id="home-completed">0</b> Complete</span>
-          <span><b id="home-best-streak">0</b> Best Streak</span>
+      <div class="hero-inner">
+        <p class="eyebrow">Interactive SQL learning</p>
+        <h1>QUERY THE WORLD</h1>
+        <p class="hero-copy">Master SQL through real geography data. Choose your mission level.</p>
+        <div class="hero-actions">
+          <a id="continue-journey" class="mission-button" href="quiz.html?id=1">Start Your Journey</a>
+          <button class="secondary-button student-login-btn" type="button">Save Progress</button>
+        </div>
+        <div class="stats-row" aria-label="SQL Atlas stats">
+          <div><strong class="counter" data-target="0" id="home-xp">0</strong><span>XP earned</span></div>
+          <div><strong class="counter" data-target="100">100</strong><span>Questions</span></div>
+          <div><strong class="counter" data-target="3">3</strong><span>Levels</span></div>
         </div>
       </div>
     </section>
-    <section class="level-grid" aria-label="SQL Atlas levels">
-      <article class="level-card" data-level-card="Beginner">
-        <div class="level-card-top"><span class="level-number">01</span><span class="difficulty-meter beginner">Start</span></div>
-        <h2>Beginner</h2>
-        <p>Build confidence with table browsing, selected columns, sorting, and small result sets.</p>
-        <div class="topic-pills"><span>SELECT</span><span>Columns</span><span>LIMIT</span><span>ORDER BY</span><span>DISTINCT</span></div>
-        <div class="level-progress"><div><strong data-progress-label="Beginner">0%</strong><span>Progress</span></div><div><strong data-streak-label="Beginner">0</strong><span>Best streak</span></div></div>
-        <div class="progress-track"><span data-progress-bar="Beginner"></span></div>
-        <a class="mission-button" data-level-link="Beginner" href="quiz.html?level=Beginner">Start Beginner</a>
-      </article>
-      <article class="level-card" data-level-card="Intermediate">
-        <div class="level-card-top"><span class="level-number">02</span><span class="difficulty-meter intermediate">Grow</span></div>
-        <h2>Intermediate</h2>
-        <p>Use filters, comparisons, text functions, and aggregate calculations on real data.</p>
-        <div class="topic-pills"><span>WHERE</span><span>BETWEEN</span><span>LIKE</span><span>IN</span><span>Functions</span><span>Aggregates</span></div>
-        <div class="level-progress"><div><strong data-progress-label="Intermediate">0%</strong><span>Progress</span></div><div><strong data-streak-label="Intermediate">0</strong><span>Best streak</span></div></div>
-        <div class="progress-track"><span data-progress-bar="Intermediate"></span></div>
-        <a class="mission-button" data-level-link="Intermediate" href="quiz.html?level=Intermediate">Start Intermediate</a>
-      </article>
-      <article class="level-card" data-level-card="Advanced">
-        <div class="level-card-top"><span class="level-number">03</span><span class="difficulty-meter advanced">Challenge</span></div>
-        <h2>Advanced</h2>
-        <p>Connect tables, group results, and solve multi-step SQL questions with joins and subqueries.</p>
-        <div class="topic-pills"><span>JOIN</span><span>LEFT JOIN</span><span>GROUP BY</span><span>HAVING</span><span>Subqueries</span></div>
-        <div class="level-progress"><div><strong data-progress-label="Advanced">0%</strong><span>Progress</span></div><div><strong data-streak-label="Advanced">0</strong><span>Best streak</span></div></div>
-        <div class="progress-track"><span data-progress-bar="Advanced"></span></div>
-        <a class="mission-button" data-level-link="Advanced" href="quiz.html?level=Advanced">Start Advanced</a>
-      </article>
+
+    <section class="dashboard-shell">
+      <div class="section-heading">
+        <p class="eyebrow">Choose your route</p>
+        <h2>Three skill zones. One global database.</h2>
+      </div>
+      <section class="level-grid" aria-label="SQL Atlas levels">
+        <article class="level-card explorer card-scanline glass-card" data-level-card="Beginner" data-required-xp="0" data-start-id="1" style="--accent: var(--atlas-green);">
+          <div class="level-icon css-sprout" aria-hidden="true"></div>
+          <div class="level-card-top">
+            <span class="level-number">01</span>
+            <span class="difficulty-meter beginner">100 XP / question</span>
+          </div>
+          <h3>EXPLORER</h3>
+          <p class="level-subtitle">Beginner Level</p>
+          <ul class="topic-list">
+            <li>SELECT & FROM basics</li>
+            <li>WHERE filtering</li>
+            <li>ORDER BY & LIMIT</li>
+            <li>COUNT, SUM, AVG</li>
+            <li>DISTINCT</li>
+          </ul>
+          <div class="level-progress">
+            <div><strong data-progress-label="Beginner">0%</strong><span>Progress</span></div>
+            <div><strong data-streak-label="Beginner">0</strong><span>Best streak</span></div>
+          </div>
+          <div class="progress-track"><span data-progress-bar="Beginner"></span></div>
+          <button class="mission-button card-cta" data-level-link="Beginner" type="button" onclick="startLevel('Beginner')">Begin Mission</button>
+          <div class="locked-overlay" hidden></div>
+        </article>
+
+        <article class="level-card navigator card-scanline glass-card" data-level-card="Intermediate" data-required-xp="300" data-start-id="29" style="--accent: var(--atlas-gold);">
+          <div class="level-icon css-shield" aria-hidden="true"></div>
+          <div class="level-card-top">
+            <span class="level-number">02</span>
+            <span class="difficulty-meter intermediate">150 XP / question</span>
+          </div>
+          <h3>NAVIGATOR</h3>
+          <p class="level-subtitle">Intermediate Level</p>
+          <ul class="topic-list">
+            <li>INNER JOIN & LEFT JOIN</li>
+            <li>Subqueries</li>
+            <li>GROUP BY & HAVING</li>
+            <li>Set Functions</li>
+            <li>Multi-table queries</li>
+          </ul>
+          <div class="level-progress">
+            <div><strong data-progress-label="Intermediate">0%</strong><span>Progress</span></div>
+            <div><strong data-streak-label="Intermediate">0</strong><span>Best streak</span></div>
+          </div>
+          <div class="progress-track"><span data-progress-bar="Intermediate"></span></div>
+          <button class="mission-button card-cta" data-level-link="Intermediate" type="button" onclick="startLevel('Intermediate')">Enter Zone</button>
+          <div class="locked-overlay" hidden></div>
+        </article>
+
+        <article class="level-card architect card-scanline glass-card" data-level-card="Advanced" data-required-xp="800" data-start-id="73" style="--accent: var(--atlas-pink);">
+          <div class="level-icon css-orb" aria-hidden="true"></div>
+          <div class="level-card-top">
+            <span class="level-number">03</span>
+            <span class="difficulty-meter advanced">200 XP / question</span>
+          </div>
+          <h3>ARCHITECT</h3>
+          <p class="level-subtitle">Advanced Level</p>
+          <ul class="topic-list">
+            <li>Correlated Subqueries</li>
+            <li>EXISTS & NOT EXISTS</li>
+            <li>Self JOIN</li>
+            <li>Complex GROUP BY + HAVING</li>
+            <li>Multi-level aggregations</li>
+          </ul>
+          <div class="level-progress">
+            <div><strong data-progress-label="Advanced">0%</strong><span>Progress</span></div>
+            <div><strong data-streak-label="Advanced">0</strong><span>Best streak</span></div>
+          </div>
+          <div class="progress-track"><span data-progress-bar="Advanced"></span></div>
+          <button class="mission-button card-cta" data-level-link="Advanced" type="button" onclick="startLevel('Advanced')">Accept Challenge</button>
+          <div class="locked-overlay" hidden></div>
+        </article>
+      </section>
     </section>
   </main>
+
+  <footer class="site-footer">
+    <img src="assets/logo.svg" alt="SQL Atlas logo" class="logo-img footer-logo" />
+    <p>SQL Atlas — built for curious high school students learning data through geography.</p>
+  </footer>
+
   <script src="js/app.js"></script>
+  <script src="js/student.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      renderStudentHeader();
       renderHomeProgress();
+      animateCounters();
     });
   </script>
 </body>

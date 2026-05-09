@@ -136,6 +136,8 @@ cd backend
 pip install -r requirements.txt
 ```
 
+> MySQL 8 commonly uses the `caching_sha2_password` authentication method. The project includes `cryptography` in `requirements.txt` so PyMySQL can connect to those MySQL accounts correctly.
+
 ### 3c. Create the `.env` file
 
 ```bash
@@ -178,6 +180,8 @@ Copy the output (starts with `$2b$...`) and paste it as the `ADMIN_PASSWORD_HASH
 uvicorn app:app --reload --port 8000
 ```
 
+> Important: use `app:app`, not `main:app`. The FastAPI entry file in this project is `backend/app.py`, and the FastAPI instance inside it is named `app`.
+
 You should see:
 ```
 ✅  Database tables verified / created.
@@ -200,6 +204,17 @@ python -m http.server 3000
 ```
 
 Open your browser and go to: **http://localhost:3000**
+
+Useful frontend pages:
+
+| Page | URL | Notes |
+|------|-----|-------|
+| Student dashboard | http://localhost:3000/index.html | Level cards, student login, progress, XP, and dark/light mode. |
+| Quiz page | http://localhost:3000/quiz.html | Usually opened through the dashboard so students resume from their first unfinished question. |
+| Leaderboard | http://localhost:3000/leaderboard.html | Client-side leaderboard from registered students in this browser. |
+| Teacher dashboard | http://localhost:3000/admin_teacher.html | Teacher login and challenge creation. |
+
+Student accounts and leaderboard data are stored in browser `localStorage`. This means progress is saved on the same device/browser, but it is not shared across different computers unless backend student auth is added later.
 
 ### Alternative: cache-busting dev server
 
@@ -237,6 +252,8 @@ Login with password: **`teacher123`** (or whatever you set in Step 3d).
 | `Can't connect to local MySQL server through socket` | MySQL server is not running. **macOS:** System Preferences → MySQL → Start. **Windows:** Start it from XAMPP or Services. |
 | `Building wheel for pydantic` hangs or fails | You're likely using Python 3.14. Switch to 3.11–3.13. |
 | `ModuleNotFoundError: No module named 'uvicorn'` | Activate the venv first: `source .venv/bin/activate` (macOS) or `.\.venv\Scripts\activate` (Windows). |
+| `Error loading ASGI app. Could not import module "main"` | Use `uvicorn app:app --reload --port 8000` from the `backend/` folder. This project has `app.py`, not `main.py`. |
+| `'cryptography' package is required for sha256_password or caching_sha2_password` | Run `pip install -r requirements.txt` again. If needed, run `pip install cryptography` inside the active virtual environment. |
 | Frontend says "Cannot reach the SQL Atlas server" | The backend is not running on port 8000. Check Terminal 1. |
 | `AttributeError: module 'bcrypt' has no attribute '__about__'` | Don't use `passlib`. Use the direct bcrypt command from Step 3d. |
 | **Forgot MySQL root password (macOS):** | Stop MySQL → start in safe mode → reset. See commands below. |
