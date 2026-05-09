@@ -39,6 +39,21 @@ function saveStudents(data) {
   localStorage.setItem("atlas_students", JSON.stringify(data));
 }
 
+function syncStudentToCloud(student) {
+  if (!student || !student.username) return;
+  api("/sync-student", "POST", {
+    username: student.username,
+    display_name: student.displayName || student.username,
+    xp: student.xp || 0,
+    streak: student.streak || 0,
+    longest_streak: student.longestStreak || 0,
+    level: student.level || "Beginner",
+    completed_quests: Array.isArray(student.completedChallenges) ? student.completedChallenges.length : 0,
+    total_correct: student.totalCorrect || 0,
+    total_attempts: student.totalAttempts || 0
+  }).catch(err => console.error("Failed to sync student to cloud:", err));
+}
+
 function getCurrentStudent() {
   const username = localStorage.getItem("atlas_current_student");
   if (!username) return null;
@@ -62,8 +77,10 @@ function studentLogin(username, password) {
   students[cleanUsername] = normalizeRegisteredStudent(students[cleanUsername]);
   students[cleanUsername].lastLogin = todayString();
   saveStudents(students);
+  syncStudentToCloud(students[cleanUsername]);
   return { ok: true, student: students[cleanUsername] };
 }
+
 
 function studentRegister(username, displayName, password) {
   const cleanUsername = normalizeUsername(username);
@@ -89,8 +106,10 @@ function studentRegister(username, displayName, password) {
   };
   saveStudents(students);
   localStorage.setItem("atlas_current_student", cleanUsername);
+  syncStudentToCloud(students[cleanUsername]);
   return { ok: true, student: students[cleanUsername] };
 }
+
 
 function studentLogout() {
   localStorage.removeItem("atlas_current_student");
@@ -125,8 +144,10 @@ function updateStudentXP(xpGained, challengeId) {
   else normalizedStudent.level = "Beginner";
   saveStudents(students);
   syncLegacyStudent(normalizedStudent);
+  syncStudentToCloud(normalizedStudent);
   renderStudentHeader();
 }
+
 
 function studentWrongAnswer() {
   const username = localStorage.getItem("atlas_current_student");
@@ -135,7 +156,9 @@ function studentWrongAnswer() {
   if (!students[username]) return;
   students[username].totalAttempts += 1;
   saveStudents(students);
+  syncStudentToCloud(students[username]);
 }
+
 
 function resetCurrentStudentStreak() {
   const username = localStorage.getItem("atlas_current_student");
@@ -145,8 +168,10 @@ function resetCurrentStudentStreak() {
   students[username].streak = 0;
   saveStudents(students);
   syncLegacyStudent(students[username]);
+  syncStudentToCloud(students[username]);
   renderStudentHeader();
 }
+
 
 function incrementCurrentStudentHints() {
   const username = localStorage.getItem("atlas_current_student");
@@ -155,7 +180,9 @@ function incrementCurrentStudentHints() {
   if (!students[username]) return;
   students[username].hintsUsed += 1;
   saveStudents(students);
+  syncStudentToCloud(students[username]);
 }
+
 
 function defaultStudent(name = "Guest explorer") {
   return {

@@ -7,7 +7,7 @@ from typing import Optional
 import config
 from database import execute_sql_query
 from queries import queries
-from models.schemas import ExecuteQueryRequest, AdminLoginRequest, AddChallengeRequest
+from models.schemas import ExecuteQueryRequest, AdminLoginRequest, AddChallengeRequest, SyncStudentRequest
 
 router = APIRouter()
 
@@ -119,3 +119,19 @@ def add_challenge(body: AddChallengeRequest, _=Depends(verify_admin_token)):
 
     queries.insert_challenge(body)
     return {"success": True, "message": "Challenge saved successfully."}
+
+@router.post("/sync-student")
+def sync_student(body: SyncStudentRequest):
+    try:
+        queries.upsert_student(body)
+        return {"success": True, "message": "Student synced successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to sync student: {e}")
+
+@router.get("/leaderboard")
+def get_leaderboard():
+    try:
+        return queries.fetch_leaderboard()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch leaderboard: {e}")
+
