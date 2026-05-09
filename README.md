@@ -1,137 +1,36 @@
-# 🌍 SQL Atlas
+# 🌍 SQL Atlas (Sci-Fi Edition)
 
-> **Learn SQL by Exploring the World** — a geography quiz game for school students.
+> **Learn SQL by Exploring the World** — a premium, sci-fi-themed geography quiz game designed to teach students SQL.
 
-SQL Atlas is a Duolingo-inspired web application where students answer real geography questions by writing SQL queries against a live MySQL database.
+SQL Atlas is an immersive, gamified web application where students answer real geography questions by writing SQL queries against a live PostgreSQL database. It features a full sci-fi UI, XP tracking, level streaks, and hints!
+
+### 🚀 Live Links
+- **Frontend (Play the Game):** [https://mysqlatlas.netlify.app](https://mysqlatlas.netlify.app)
+- **Backend API Docs:** [https://mysql-geo-game.vercel.app/docs](https://mysql-geo-game.vercel.app/docs)
 
 ---
 
-## 🗂️ Project Structure
+## 🗂️ Project Structure (Monorepo)
 
 ```
 sql-atlas/
-├── backend/                  # FastAPI Python server
-│   ├── app.py                # Entry point — creates the FastAPI app
-│   ├── db.py                 # Database connection pool (SQLAlchemy)
-│   ├── routes.py             # All API endpoints
-│   ├── requirements.txt      # Python dependencies
-│   └── .env.example          # Environment variable template → copy to .env
+├── backend/                  # FastAPI Python server (Vercel)
+│   ├── main.py               # Entry point
+│   ├── database.py           # PostgreSQL connection pool
+│   ├── routes/               # API endpoints
+│   ├── sql_files/            # Database schema & seed scripts
+│   ├── vercel.json           # Vercel Serverless configuration
+│   └── requirements.txt      # Python dependencies
 │
-├── database/
-│   ├── schema.sql            # CREATE TABLE statements (run first)
-│   ├── seed.sql              # Sample data + all 20 game challenges
-│   └── challenges.json       # Challenge list for frontend reference
-│
-├── frontend/
-│   ├── index.html            # Home / landing page
-│   ├── quiz.html             # Main quiz interface (SQL editor + results)
-│   ├── admin_teacher.html    # Teacher dashboard (add challenges, view all)
-│   ├── assets/               # Logo SVG/PNG, ERD diagram image
-│   │   └── erd_diagram.png   # ← Database architect exports this
+├── frontend/                 # Static HTML/JS/CSS (Netlify)
+│   ├── index.html            # Landing / Login page
+│   ├── quiz.html             # Main terminal interface
 │   ├── css/
-│   │   └── style.css         # Complete stylesheet (all pages)
+│   │   └── style.css         # Sci-Fi UI styling
 │   └── js/
-│       ├── app.js            # Shared utilities + API config
-│       ├── quiz.js           # Quiz page logic
-│       └── admin.js          # Admin page logic
-│
-├── .gitignore
-└── README.md
+│       ├── app.js            # Shared config & dynamic API URLs
+│       └── quiz.js           # Core terminal logic
 ```
-
----
-
-## 🚀 Local Setup
-
-### Prerequisites
-- Python 3.10+
-- MySQL Server 8.0+ running locally
-- A modern browser
-
-### Step 1 — Clone the repo
-```bash
-git clone https://github.com/YOUR_USERNAME/sql-atlas.git
-cd sql-atlas
-```
-
-### Step 2 — Set up the database
-```bash
-# Log in as MySQL root and create the database
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS sql_atlas;"
-
-# Run the schema (creates all tables)
-mysql -u root -p sql_atlas < database/schema.sql
-
-# Seed sample data and challenges
-mysql -u root -p sql_atlas < database/seed.sql
-
-# Create the read-only student user
-mysql -u root -p -e "
-  CREATE USER IF NOT EXISTS 'student_reader'@'localhost' IDENTIFIED BY 'choose_a_password';
-  GRANT SELECT ON sql_atlas.* TO 'student_reader'@'localhost';
-  FLUSH PRIVILEGES;
-"
-```
-
-### Step 3 — Configure backend environment
-```bash
-cd backend
-cp .env.example .env
-```
-Edit `.env` and fill in:
-- `DB_PASSWORD` — the password you chose for `student_reader`
-- `ADMIN_PASSWORD_HASH` — generate with:
-```bash
-python -c "from passlib.context import CryptContext; c=CryptContext(schemes=['bcrypt']); print(c.hash('your_teacher_password'))"
-```
-
-### Step 4 — Install Python dependencies
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-### Step 5 — Start the backend
-```bash
-cd backend
-uvicorn app:app --reload --port 8000
-```
-API is live at: `http://localhost:8000`  
-Docs at: `http://localhost:8000/docs`
-
-### Step 6 — Open the frontend
-Open `frontend/index.html` directly in your browser, **or** serve it with:
-```bash
-cd frontend
-python -m http.server 3000
-# Then visit http://localhost:3000
-```
-
----
-
-## 🔌 API Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/ping` | Health check |
-| GET | `/api/challenges` | List all challenges |
-| GET | `/api/challenges/{id}` | Single challenge by ID |
-| POST | `/api/execute-query` | Run student SQL + verify answer |
-| POST | `/api/admin/login` | Teacher login → returns token |
-| POST | `/api/admin/add-challenge` | Add new challenge (requires token) |
-
----
-
-## 🗃️ Database Schema
-
-| Table | Description |
-|-------|-------------|
-| `countries` | Core geography data — the main query table |
-| `cities` | Cities linked to countries via `country_id` |
-| `rivers` | Rivers with length and continent |
-| `languages` | Language names |
-| `country_languages` | Many-to-many: which languages a country speaks |
-| `challenges` | Game questions + expected SQL answers |
 
 ---
 
@@ -139,34 +38,34 @@ python -m http.server 3000
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | HTML5, CSS3, Vanilla JavaScript |
-| Backend | Python 3, FastAPI, Uvicorn |
-| Database ORM | SQLAlchemy + PyMySQL |
-| Database | MySQL 8.0 |
-| Hosting (backend) | Render.com |
-| Hosting (frontend) | Vercel / Netlify |
+| **Frontend** | HTML5, CSS3 (Custom Glassmorphism), Vanilla JS |
+| **Backend** | Python 3.10+, FastAPI |
+| **Database** | PostgreSQL (Neon DB) |
+| **Hosting (API)** | Vercel (Serverless Functions) |
+| **Hosting (UI)** | Netlify |
 
 ---
 
-## 👩‍🏫 Teacher Dashboard
+## 🚀 Deployment Guide
 
-Access at: `/admin_teacher.html`  
-The URL is not linked from the main site — share it directly with teachers.
+This repository is designed to be easily deployed using a "monorepo" strategy.
 
-- Login with the teacher password (set in `.env`)
-- Add new challenges with question text, expected SQL, and difficulty
-- View all existing challenges with difficulty filter
+### 1. Deploy the Backend (Vercel)
+1. Import this repository into Vercel.
+2. Under **Root Directory**, click edit and select `backend`.
+3. Add the `DB_CONNECTION` environment variable with your Neon DB string.
+4. Deploy to get your live API URL.
+
+### 2. Deploy the Frontend (Netlify)
+1. In `frontend/js/app.js`, update `API_BASE_URL` with your Vercel URL.
+2. Import this repository into Netlify.
+3. Under **Base directory**, type `frontend`.
+4. Leave the Publish directory blank or set it to `.`.
+5. Deploy to get your live game URL.
+
+### 3. Final Step (CORS)
+Add the `ORIGINS` environment variable in Vercel and set it to your Netlify URL so the backend accepts requests.
 
 ---
 
-## 📝 TODO / Future Improvements
-
-- [ ] Add CodeMirror for SQL syntax highlighting in the editor
-- [ ] Track student progress per session (localStorage or backend sessions)
-- [ ] Add a "Leaderboard" showing fastest correct answers
-- [ ] Add edit/delete challenge functionality in teacher dashboard
-- [ ] Internationalization (multi-language support)
-
----
-
-*Built with ❤️ for TOP-Day.*
+*Built with ❤️ for aspiring database engineers.*
