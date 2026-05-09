@@ -27,3 +27,39 @@ def insert_challenge(data):
         data.level, 
         data.hint
     ))
+
+def upsert_student(data):
+    query = """
+        INSERT INTO students (username, display_name, xp, streak, longest_streak, level, completed_quests, total_correct, total_attempts, last_active)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+        ON CONFLICT (username) DO UPDATE SET
+            display_name = EXCLUDED.display_name,
+            xp = EXCLUDED.xp,
+            streak = EXCLUDED.streak,
+            longest_streak = EXCLUDED.longest_streak,
+            level = EXCLUDED.level,
+            completed_quests = EXCLUDED.completed_quests,
+            total_correct = EXCLUDED.total_correct,
+            total_attempts = EXCLUDED.total_attempts,
+            last_active = CURRENT_TIMESTAMP
+    """
+    execute_sql_query(query, (
+        data.username,
+        data.display_name,
+        data.xp,
+        data.streak,
+        data.longest_streak,
+        data.level,
+        data.completed_quests,
+        data.total_correct,
+        data.total_attempts
+    ))
+
+def fetch_leaderboard():
+    query = """
+        SELECT username, display_name, xp, streak, longest_streak, level, completed_quests, total_correct, total_attempts
+        FROM students
+        ORDER BY xp DESC
+        LIMIT 50
+    """
+    return execute_sql_query(query)

@@ -15,3 +15,14 @@ class AddChallengeRequest(BaseModel):
     category: str
     level: Optional[str] = "Beginner"
     hint: Optional[str] = ""
+
+class SyncStudentRequest(BaseModel):
+    username: str
+    display_name: str
+    xp: int
+    streak: int
+    longest_streak: int
+    level: str
+    completed_quests: int
+    total_correct: int
+    total_attempts: int

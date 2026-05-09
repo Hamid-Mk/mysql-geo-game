@@ -43,7 +43,7 @@
 
   <main class="leaderboard-shell">
     <section class="leaderboard-hero">
-      <p class="eyebrow">Ranked by local progress</p>
+      <p class="eyebrow">Ranked globally across the universe</p>
       <h1>GLOBAL LEADERBOARD</h1>
       <p class="hero-copy">Top SQL Explorers — ranked by XP</p>
     </section>
@@ -96,10 +96,29 @@
       return "EXPLORER";
     }
 
-    function buildLeaderboard() {
-      const students = JSON.parse(localStorage.getItem("atlas_students") || "{}");
+    async function buildLeaderboard() {
+      let sorted = [];
+      try {
+        const cloudData = await api("/leaderboard");
+        // Convert Python dict format from SQL into our JS format
+        sorted = cloudData.map(student => ({
+          username: student.username,
+          displayName: student.display_name,
+          xp: student.xp,
+          streak: student.streak,
+          longestStreak: student.longest_streak,
+          level: student.level,
+          completedChallenges: new Array(student.completed_quests), // Just for length
+          totalCorrect: student.total_correct,
+          totalAttempts: student.total_attempts
+        }));
+      } catch (err) {
+        console.warn("Could not fetch global leaderboard. Falling back to local data.", err);
+        const students = JSON.parse(localStorage.getItem("atlas_students") || "{}");
+        sorted = Object.values(students).sort((a, b) => (b.xp || 0) - (a.xp || 0));
+      }
+
       const current = localStorage.getItem("atlas_current_student");
-      const sorted = Object.values(students).sort((a, b) => (b.xp || 0) - (a.xp || 0));
       const tbody = document.getElementById("lb-tbody");
       const empty = document.getElementById("lb-empty");
       tbody.innerHTML = "";
